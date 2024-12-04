@@ -1,0 +1,13 @@
+http:
+  middlewares:
+    auth-forward:
+      forwardAuth:
+        address: "http://auth:9001/auth/validate"
+        authResponseHeaders:
+          - "X-Auth-User"
+          - "X-Auth-Status"
+
+    strip-imagine:
+      stripPrefix:
+        prefixes: 
+          - "/imagine"
