@@ -144,10 +144,6 @@ docker compose logs -f
 4. Push to the branch
 5. Create a new Pull Request
 
-## 📄 License
-
-[Your License Here]
-
 ## 🙏 Acknowledgments
 
 - Intel Extension for PyTorch
