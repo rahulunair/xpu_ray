@@ -1,20 +1,27 @@
-middlewares:
-  rate-limit:
-    rateLimit:
-      average: 100
-      burst: 50
-      period: 1m
+http:
+  middlewares:
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 50
+        period: 1m
+        sourceCriterion:
+          ipStrategy:
+            depth: 1
     
-  auth-error-handler:
-    errors:
-      status:
-        - "401-403"
-      service: auth
-      query: "/auth/error"
-  
-  ip-whitelist:
-    ipWhiteList:
-      sourceRange:
-        - "10.0.0.0/8"
-        - "172.16.0.0/12"
-        - "192.168.0.0/16"
+    security-headers:
+      headers:
+        frameDeny: true
+        contentTypeNosniff: true
+        browserXssFilter: true
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        customResponseHeaders:
+          X-Server: "XPU-Ray-Proxy"
+    
+    chain-auth:
+      chain:
+        middlewares:
+          - auth-middleware@docker
+          - rate-limit
+          - security-headers
