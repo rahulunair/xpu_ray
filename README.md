@@ -1,35 +1,35 @@
-# XPU Ray Stable Diffusion Service
+# 🎨 XPU Ray Stable Diffusion Service
 
 A high-performance Stable Diffusion service powered by Intel XPU and Ray Serve, supporting multiple models with authentication and load balancing.
 
-## Features
+## ✨ Features
 
-- **Multiple Model Support**:
+- **🖼️ Multiple Model Support**:
   - Stable Diffusion 2.0 (SD2)
   - Stable Diffusion XL (SDXL)
   - SDXL-Turbo
   - SDXL-Lightning
 
-- **Intel XPU Optimization**:
+- **⚡ Intel XPU Optimization**:
   - Optimized for Intel GPUs using Intel Extension for PyTorch
   - Efficient memory management
   - Hardware-accelerated inference
 
-- **Production-Ready Features**:
-  - Token-based authentication
-  - Load balancing with Traefik
-  - Health checks and monitoring
-  - Automatic model management
-  - Request queuing and rate limiting
+- **🚀 Production-Ready Features**:
+  - 🔐 Token-based authentication
+  - ⚖️ Load balancing with Traefik
+  - 🏥 Health checks and monitoring
+  - 🤖 Automatic model management
+  - 📊 Request queuing and rate limiting
 
-## Prerequisites
+## 📋 Prerequisites
 
-- Docker and Docker Compose
-- Intel GPU with appropriate drivers
-- 32GB+ RAM recommended
-- Ubuntu 22.04 or later
+- 🐳 Docker and Docker Compose
+- 🎮 Intel GPU with appropriate drivers
+- 💾 32GB+ RAM recommended
+- 🐧 Ubuntu 22.04 or later
 
-## Quick Start
+## 🚀 Quick Start
 
 1. Clone the repository:
 ```bash
@@ -41,15 +41,16 @@ cd xpu_ray
 ```bash
 ./deploy.sh
 ```
+
 The script will:
-- Generate an authentication token
-- Start all services
-- Wait for models to load
-- Display the API endpoint and token
+- 🔑 Generate an authentication token
+- 🚀 Start all services
+- ⏳ Wait for models to load
+- 📝 Display the API endpoint and token
 
-## API Endpoints
+## 🔌 API Endpoints
 
-### Generate Image
+### 🎨 Generate Image
 ```bash
 curl -X POST "http://localhost:8000/imagine/sdxl-turbo" \
      -H "Authorization: Bearer $VALID_TOKEN" \
@@ -60,23 +61,23 @@ curl -X POST "http://localhost:8000/imagine/sdxl-turbo" \
      }'
 ```
 
-### Check Service Health
+### 💓 Check Service Health
 ```bash
 curl http://localhost:8000/health
 ```
 
-### Get Model Information
+### ℹ️ Get Model Information
 ```bash
 curl http://localhost:8000/info
 ```
 
-### Reload Specific Model
+### 🔄 Reload Specific Model
 ```bash
 curl -X POST "http://localhost:8000/reload_model/sdxl-turbo" \
      -H "Authorization: Bearer $VALID_TOKEN"
 ```
 
-## Model Configurations
+## ⚙️ Model Configurations
 
 | Model | Steps | Guidance | Min Size | Max Size |
 |-------|--------|-----------|-----------|-----------|
@@ -85,7 +86,7 @@ curl -X POST "http://localhost:8000/reload_model/sdxl-turbo" \
 | SDXL-Turbo | 1 | 0.0 | 512 | 1024 |
 | SDXL-Lightning | 4 | 0.0 | 512 | 1024 |
 
-## Architecture
+## 🏗️ Architecture
 
 ```
 ┌─────────────┐     ┌──────────┐     ┌─────────────┐
@@ -99,43 +100,43 @@ curl -X POST "http://localhost:8000/reload_model/sdxl-turbo" \
                   └─────────────┘
 ```
 
-## Management Commands
+## 🛠️ Management Commands
 
-### Start Services
+### 🚀 Start Services
 ```bash
 docker compose up -d
 ```
 
-### Stop Services
+### 🛑 Stop Services
 ```bash
 docker compose down
 ```
 
-### Clean Up
+### 🧹 Clean Up
 ```bash
 docker compose down --remove-orphans
 docker rmi xpu_ray-sd-service xpu_ray-auth xpu_ray-traefik
 ```
 
-### View Logs
+### 📋 View Logs
 ```bash
 docker compose logs -f
 ```
 
-## Environment Variables
+## 🔧 Environment Variables
 
 - `VALID_TOKEN`: Authentication token
 - `DIFFUSERS_CACHE`: Cache directory for diffusers
 - `HF_HOME`: Hugging Face home directory
 
-## Performance Considerations
+## 📈 Performance Considerations
 
-- Models are loaded on demand
-- Memory is cleared after each generation
-- Health checks monitor system resources
-- Request queuing prevents overload
+- 🔄 Models are loaded on demand
+- 🧹 Memory is cleared after each generation
+- 💓 Health checks monitor system resources
+- 📊 Request queuing prevents overload
 
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create your feature branch
@@ -143,11 +144,11 @@ docker compose logs -f
 4. Push to the branch
 5. Create a new Pull Request
 
-## License
+## 📄 License
 
 [Your License Here]
 
-## Acknowledgments
+## 🙏 Acknowledgments
 
 - Intel Extension for PyTorch
 - Hugging Face Diffusers
