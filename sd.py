@@ -17,17 +17,15 @@ from safetensors.torch import load_file
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.WARNING)
 
-def try_compile_unet(unet):
-    """Attempt to compile UNet with torch.compile"""
+def optimize_unet(unet):
+    """Optimize UNet with IPEX"""
     try:
-        import triton  # Check if triton is available
-        logger.info("Attempting to compile UNet with torch.compile")
-        return torch.compile(unet, options={"freezing": True})
-    except ImportError:
-        logger.warning("Triton not available, skipping torch.compile optimization")
+        logger.info("Optimizing UNet with IPEX")
+        unet = ipex.optimize(unet.eval(), dtype=unet.dtype)
+        logger.info("Successfully optimized UNet with IPEX")
         return unet
     except Exception as e:
-        logger.warning(f"torch.compile failed: {e}, continuing without compilation")
+        logger.warning(f"IPEX optimization failed: {e}, continuing without optimization")
         return unet
 
 def perform_inference(pipe, prompt: str, height: int, width: int, **kwargs) -> Image.Image:
@@ -69,8 +67,7 @@ class StableDiffusion2Model(BaseModel):
             self.model_id, scheduler=scheduler, torch_dtype=self.dtype
         )
         self.pipe = self.pipe.to(self.device)
-        self.pipe.unet = ipex.optimize(self.pipe.unet.eval(), dtype=self.dtype)
-        self.pipe.unet = try_compile_unet(self.pipe.unet)
+        self.pipe.unet = optimize_unet(self.pipe.unet)
         self.pipe.enable_attention_slicing()
         logger.info(f"Initialized {self.model_id} with device={self.device}, dtype={self.dtype}")
 
@@ -104,8 +101,7 @@ class StableDiffusionXLModel(BaseModel):
             self.model_id, torch_dtype=self.dtype
         )
         self.pipe = self.pipe.to(self.device)
-        self.pipe.unet = ipex.optimize(self.pipe.unet.eval(), dtype=self.dtype)
-        self.pipe.unet = try_compile_unet(self.pipe.unet)
+        self.pipe.unet = optimize_unet(self.pipe.unet)
         self.pipe.enable_attention_slicing()
         logger.info(f"Initialized {self.model_id} with device={self.device}, dtype={self.dtype}")
 
@@ -137,8 +133,7 @@ class FluxModel(BaseModel):
     def _initialize_model(self):
         self.pipe = FluxPipeline.from_pretrained(self.model_id, torch_dtype=self.dtype)
         self.pipe = self.pipe.to(self.device)
-        self.pipe.unet = ipex.optimize(self.pipe.unet.eval(), dtype=self.dtype)
-        self.pipe.unet = try_compile_unet(self.pipe.unet)
+        self.pipe.unet = optimize_unet(self.pipe.unet)
         self.pipe.enable_attention_slicing()
         logger.info(f"Initialized {self.model_id} with device={self.device}, dtype={self.dtype}")
 
@@ -174,8 +169,7 @@ class SDXLTurboModel(BaseModel):
             torch_dtype=self.dtype
         )
         self.pipe = self.pipe.to(self.device)
-        self.pipe.unet = ipex.optimize(self.pipe.unet.eval(), dtype=self.dtype)
-        self.pipe.unet = try_compile_unet(self.pipe.unet)
+        self.pipe.unet = optimize_unet(self.pipe.unet)
         self.pipe.enable_attention_slicing()
         logger.info(f"Initialized {self.model_id} with device={self.device}, dtype={self.dtype}")
 
@@ -228,8 +222,7 @@ class SDXLLightningModel(BaseModel):
             self.pipe.scheduler.config,
             timestep_spacing="trailing"
         )
-        self.pipe.unet = ipex.optimize(self.pipe.unet.eval(), dtype=self.dtype)
-        self.pipe.unet = try_compile_unet(self.pipe.unet)
+        self.pipe.unet = optimize_unet(self.pipe.unet)
         self.pipe.enable_attention_slicing()
         logger.info(f"Initialized {self.repo} with device={self.device}, dtype={self.dtype}")
 
