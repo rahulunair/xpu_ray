@@ -11,6 +11,8 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:9000"
+      - "--entrypoints.traefik.address=:8080"
+      - "--api.dashboard=true"
       - "--log.level=DEBUG"
       - "--accesslog=true"
       - "--providers.file.directory=/etc/traefik/dynamic"
