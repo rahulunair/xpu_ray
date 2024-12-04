@@ -161,7 +161,7 @@ class ImageGenerationServer:
             "config": MODEL_CONFIGS[model_name],
         }
 
-    @app.post("/imagine/{model_name}")
+    @app.post("{model_name}")
     async def generate(
         self,
         model_name: str,
