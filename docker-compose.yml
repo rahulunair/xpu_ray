@@ -41,8 +41,8 @@ services:
       - "traefik.http.routers.auth.rule=PathPrefix(`/auth`)"
       - "traefik.http.services.auth.loadbalancer.server.port=9001"
       - "traefik.http.services.auth.loadbalancer.server.scheme=http"
-      - "traefik.http.middlewares.auth-middleware.forwardauth.address=http://auth:9001/auth/validate"
-      - "traefik.http.middlewares.auth-middleware.forwardauth.authResponseHeaders=X-Auth-User"
+      - "traefik.http.middlewares.my-auth.forwardauth.address=http://auth:9001/auth/validate"
+      - "traefik.http.middlewares.my-auth.forwardauth.authResponseHeaders=X-Auth-User"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9001/auth/health"]
       interval: 30s
@@ -69,5 +69,5 @@ services:
       - "traefik.http.routers.sd.rule=PathPrefix(`/imagine`)"
       - "traefik.http.services.sd.loadbalancer.server.port=9002"
       - "traefik.http.services.sd.loadbalancer.server.scheme=http"
-      - "traefik.http.routers.sd.middlewares=auth-middleware@docker"
+      - "traefik.http.routers.sd.middlewares=my-auth"
     restart: unless-stopped
