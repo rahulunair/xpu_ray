@@ -1,3 +1,7 @@
+networks:
+  traefik-net:
+    driver: bridge
+
 services:
   traefik:
     build:
@@ -26,6 +30,8 @@ services:
       retries: 3
       start_period: 60s
     restart: unless-stopped
+    networks:
+      - traefik-net
 
   auth:
     build:
@@ -49,6 +55,8 @@ services:
       timeout: 5s
       retries: 3
     restart: unless-stopped
+    networks:
+      - traefik-net
 
   sd-service:
     build:
@@ -72,3 +80,5 @@ services:
       - "traefik.http.middlewares.strip-imagine.stripprefix.prefixes=/imagine"
       - "traefik.http.routers.sd.middlewares=my-auth,strip-imagine"
     restart: unless-stopped
+    networks:
+      - traefik-net
