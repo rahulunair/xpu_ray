@@ -30,9 +30,6 @@ else
     echo "Generated new token: $VALID_TOKEN"
 fi
 
-echo "Ensuring network exists..."
-docker network inspect sd_network >/dev/null 2>&1 || docker network create sd_network
-
 echo "Stopping any existing services..."
 docker compose -f docker-compose.base.yml down --remove-orphans
 docker compose down --remove-orphans
