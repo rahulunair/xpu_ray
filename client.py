@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class StableDiffusionClient:
-    def __init__(self, base_url: str = "http://localhost:8000"):
+    def __init__(self, base_url: str = "http://localhost:9002"):
         self.base_url = base_url.rstrip("/")
         self.output_dir = Path("generated_images")
         self.output_dir.mkdir(exist_ok=True)
