@@ -65,11 +65,8 @@ class ModelStatus:
 @serve.deployment(
     ray_actor_options={"num_cpus": 20},
     num_replicas=1,
-    max_concurrent_queries=40,
-    user_config={
-        "max_batch_size": 1,
-        "batch_wait_timeout_s": 0.1
-    }
+    max_ongoing_requests=100,
+    max_queued_requests=50,
 )
 @serve.ingress(app)
 class ImageGenerationServer:
