@@ -11,6 +11,9 @@ TEST_DIR="sd_test_$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$TEST_DIR"
 cd "$TEST_DIR"
 
+# Load token from environment
+source ../.auth_token.env
+
 # Function to check if file is a valid PNG
 check_image() {
     local file=$1
@@ -38,14 +41,9 @@ test_model() {
     
     local output_file="${model}_test.png"
     
-    curl -X POST "http://localhost:8000/imagine/$model?prompt=$(echo $prompt | jq -sRr @uri)" \
-         -H "Authorization: Bearer test-token" \
-         -H "Content-Type: application/json" \
-         -d "{
-             \"img_size\": $size,
-             \"num_inference_steps\": $steps,
-             \"guidance_scale\": $guidance
-         }" \
+    curl -X POST "http://localhost:9000/imagine/$model?prompt=$(echo $prompt | jq -sRr @uri)&img_size=$size&num_inference_steps=$steps&guidance_scale=$guidance" \
+         -H "Authorization: Bearer $VALID_TOKEN" \
+         -H "Accept: image/png" \
          --output "$output_file" \
          --silent
     
@@ -62,11 +60,11 @@ echo -e "${YELLOW}Test results will be saved in: $TEST_DIR${NC}\n"
 
 # Test health endpoint
 echo -e "\n${YELLOW}Testing health endpoint...${NC}"
-curl -s -H "Authorization: Bearer test-token" http://localhost:8000/health | jq .
+curl -s -H "Authorization: Bearer $VALID_TOKEN" http://localhost:9000/imagine/health | jq .
 
 # Test info endpoint
 echo -e "\n${YELLOW}Testing info endpoint...${NC}"
-curl -s -H "Authorization: Bearer test-token" http://localhost:8000/info | jq .
+curl -s -H "Authorization: Bearer $VALID_TOKEN" http://localhost:9000/imagine/info | jq .
 
 # Test image generation for each model
 echo -e "\n${YELLOW}Testing image generation...${NC}"
