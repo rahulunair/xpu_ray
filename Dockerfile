@@ -19,8 +19,10 @@ RUN pip install --no-cache-dir \
 RUN pip install --no-cache-dir --pre pytorch-triton-xpu==3.0.0+1b2f15840e \
     --index-url https://download.pytorch.org/whl/nightly/xpu || echo "Triton installation failed, continuing without it"
 
-COPY sd.py serve.py serve_config.yaml /app/
-COPY start_serving.sh /app/
+COPY sd.py /app/sd.py
+COPY serve.py /app/serve.py
+COPY serve_config.yaml /app/serve_config.yaml
+COPY start_serving.sh /app/start_serving.sh
 
 WORKDIR /app
 

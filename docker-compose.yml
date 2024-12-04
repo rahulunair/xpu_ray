@@ -7,11 +7,7 @@ services:
     build:
       context: ./proxy
       dockerfile: Dockerfile
-    networks:
-      - sd_network
-    ports:
-      - "9000:9000"
-      - "8080:8080" 
+    network_mode: "host"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     command:
@@ -33,8 +29,7 @@ services:
     build:
       context: ./auth
       dockerfile: Dockerfile
-    networks:
-      - sd_network
+    network_mode: "host"
     environment:
       - VALID_TOKEN=${VALID_TOKEN:-test-token}
     labels:
@@ -51,8 +46,6 @@ services:
     devices:
       - /dev/dri:/dev/dri
     environment:
-      - RAY_ADDRESS=127.0.0.1:6379
-      - RAY_SERVE_HTTP_OPTIONS={"host":"0.0.0.0","port":8000}
       - VALID_TOKEN=${VALID_TOKEN:-test-token}
     volumes:
       - ${HOME}/.cache/huggingface:/root/.cache/huggingface
@@ -65,7 +58,3 @@ services:
       - "traefik.http.middlewares.auth-middleware.forwardauth.address=http://auth:9001/auth/validate"
       - "traefik.http.middlewares.auth-middleware.forwardauth.authResponseHeaders=X-Auth-User"
       - "traefik.http.routers.sd.middlewares=auth-middleware@docker"
-    ports:
-      - "9002:9002"
-      - "8000:8000"
-      - "8265:8265"
