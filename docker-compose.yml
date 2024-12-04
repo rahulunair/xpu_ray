@@ -1,6 +1,7 @@
 networks:
   sd_net:
     external: true
+    name: sd_network
 
 services:
   sd-service:
