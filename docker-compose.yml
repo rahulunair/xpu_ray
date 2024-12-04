@@ -1,0 +1,59 @@
+services:
+  auth:
+    build: 
+      context: ./auth
+      dockerfile: Dockerfile
+    environment:
+      - VALID_TOKEN=${VALID_TOKEN}
+    networks:
+      - sd_network
+
+  sd-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    devices:
+      - /dev/dri:/dev/dri
+    ipc: host
+    shm_size: 2g
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    environment:
+      - TRANSFORMERS_CACHE=/models/transformers
+      - DIFFUSERS_CACHE=/models/diffusers
+      - HF_HOME=/root/.cache/huggingface
+    volumes:
+      - ${HOME}/.cache/huggingface:/root/.cache/huggingface
+      - ${HOME}/stable-diffusion-models:/models
+    networks:
+      - sd_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sd.rule=PathPrefix(`/`)"
+      - "traefik.http.services.sd.loadbalancer.server.port=8000"
+      - "traefik.http.routers.sd.middlewares=sd-retry"
+      - "traefik.http.middlewares.sd-retry.retry.attempts=5"
+      - "traefik.http.middlewares.sd-retry.retry.initialInterval=10s"
+
+  traefik:
+    build:
+      context: ./proxy
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - sd_network
+
+networks:
+  sd_network:
+    driver: bridge

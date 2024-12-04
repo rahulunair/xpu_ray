@@ -1,0 +1,31 @@
+api:
+  insecure: true
+
+providers:
+  docker:
+    exposedByDefault: false
+
+entryPoints:
+  web:
+    address: ":8000"
+
+http:
+  middlewares:
+    auth-middleware:
+      forwardAuth:
+        address: "http://auth:8001/auth"
+        
+  routers:
+    sd-router:
+      rule: "PathPrefix(`/`)"
+      service: sd-service
+      middlewares:
+        - auth-middleware
+      entryPoints:
+        - web
+
+  services:
+    sd-service:
+      loadBalancer:
+        servers:
+          - url: "http://sd-service:8000"
