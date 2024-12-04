@@ -1,0 +1,20 @@
+proxy_location: EveryNode
+
+http_options:
+  host: 0.0.0.0
+  port: 8000
+
+applications:
+- name: default
+  route_prefix: /
+  import_path: serve:entrypoint
+  runtime_env:
+    pip:
+      - torch
+      - transformers
+      - accelerate
+      - sentencepiece
+      - psutil
+  deployments:
+  - name: ImageGenerationServer
+    num_replicas: 1 

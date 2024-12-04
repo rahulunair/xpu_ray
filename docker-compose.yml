@@ -52,7 +52,7 @@ services:
       - /dev/dri:/dev/dri
     environment:
       - RAY_ADDRESS=127.0.0.1:6379
-      - RAY_SERVE_HTTP_OPTIONS={"host":"0.0.0.0","port":9002}
+      - RAY_SERVE_HTTP_OPTIONS={"host":"0.0.0.0","port":8000}
       - VALID_TOKEN=${VALID_TOKEN:-test-token}
     volumes:
       - ${HOME}/.cache/huggingface:/root/.cache/huggingface
