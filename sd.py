@@ -45,6 +45,28 @@ def perform_inference(pipe, prompt: str, height: int, width: int, **kwargs) -> I
         if hasattr(torch.xpu, 'empty_cache'):
             torch.xpu.empty_cache()
 
+def optimize_model_recursive(model):
+    """Recursively optimize all torch.nn.Module components with IPEX"""
+    try:
+        if isinstance(model, torch.nn.Module):
+            logger.info(f"Optimizing module: {type(model).__name__}")
+            return ipex.optimize(model.eval(), dtype=model.dtype)
+        
+        # If it's a container-like object (has attributes)
+        if hasattr(model, '__dict__'):
+            for name, component in model.__dict__.items():
+                if isinstance(component, (torch.nn.Module, object)):  # Check both Module and objects that might contain Modules
+                    try:
+                        optimized = optimize_model_recursive(component)
+                        setattr(model, name, optimized)
+                    except Exception as e:
+                        logger.warning(f"Failed to optimize {name}: {e}")
+        
+        return model
+    except Exception as e:
+        logger.warning(f"Optimization failed: {e}, continuing without optimization")
+        return model
+
 class BaseModel:
     def generate(self, prompt: str, height: int, width: int, **kwargs) -> Image.Image:
         raise NotImplementedError
@@ -133,7 +155,7 @@ class FluxModel(BaseModel):
     def _initialize_model(self):
         self.pipe = FluxPipeline.from_pretrained(self.model_id, torch_dtype=self.dtype)
         self.pipe = self.pipe.to(self.device)
-        self.pipe.unet = optimize_unet(self.pipe.unet)
+        self.pipe = optimize_model_recursive(self.pipe)
         self.pipe.enable_attention_slicing()
         logger.info(f"Initialized {self.model_id} with device={self.device}, dtype={self.dtype}")
 
