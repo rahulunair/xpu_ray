@@ -7,25 +7,23 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir \
-    "ray[serve]" \
-    "fastapi" \
-    "diffusers" \
-    "transformers" \
-    "accelerate" \
-    "Pillow" \
-    "sentencepiece" \
-    "psutil"
+    "ray[serve]>=2.40.0" \
+    "fastapi>=0.115.6" \
+    "diffusers==0.31.0" \
+    "transformers==4.46.3" \
+    "accelerate==1.1.1" \
+    "Pillow==10.4.0" \
+    "sentencepiece==0.2.0" \
+    "psutil==6.0.0"
 
 RUN pip install --no-cache-dir --pre pytorch-triton-xpu==3.0.0+1b2f15840e \
     --index-url https://download.pytorch.org/whl/nightly/xpu || echo "Triton installation failed, continuing without it"
 
-COPY sd.py /app/sd.py
-COPY serve.py /app/serve.py
+COPY sd.py serve.py serve_config.yaml /app/
 COPY start_serving.sh /app/
 
 WORKDIR /app
 
 RUN chmod +x /app/start_serving.sh
-EXPOSE 6379 8265 9002
 
 ENTRYPOINT ["bash", "start_serving.sh"]
