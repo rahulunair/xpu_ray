@@ -65,7 +65,7 @@ class ModelStatus:
 
 
 @serve.deployment(
-    ray_actor_options={"num_cpus": 10},
+    ray_actor_options={"num_cpus": 20},
     num_replicas=1,
     max_ongoing_requests=40,
     max_queued_requests=10000,

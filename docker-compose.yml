@@ -1,63 +1,47 @@
 services:
+  traefik:
+    build:
+      context: ./proxy
+      dockerfile: Dockerfile
+    network_mode: "host"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:8000"
+      - "--log.level=DEBUG"
+      - "--accesslog=true"
+
   auth:
-    build: 
+    build:
       context: ./auth
       dockerfile: Dockerfile
-    environment:
-      - VALID_TOKEN=${VALID_TOKEN}
-    networks:
-      - sd_network
+    network_mode: "host"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.auth.entrypoints=web"
+      - "traefik.http.routers.auth.rule=PathPrefix(`/auth`)"
+      - "traefik.http.services.auth.loadbalancer.server.port=8001"
 
   sd-service:
     build:
       context: .
       dockerfile: Dockerfile
+    network_mode: "host"
     devices:
       - /dev/dri:/dev/dri
-    ipc: host
-    shm_size: 2g
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    environment:
-      - TRANSFORMERS_CACHE=/models/transformers
-      - DIFFUSERS_CACHE=/models/diffusers
-      - HF_HOME=/root/.cache/huggingface
     volumes:
       - ${HOME}/.cache/huggingface:/root/.cache/huggingface
       - ${HOME}/stable-diffusion-models:/models
-    networks:
-      - sd_network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 120s
     labels:
       - "traefik.enable=true"
+      - "traefik.http.routers.sd.entrypoints=web"
       - "traefik.http.routers.sd.rule=PathPrefix(`/`)"
       - "traefik.http.services.sd.loadbalancer.server.port=8000"
-      - "traefik.http.routers.sd.service=sd"
-      - "traefik.docker.network=sd_network"
-
-  traefik:
-    build:
-      context: ./proxy
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      - sd_network
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=sd_network"
 
 networks:
   sd_network:
     driver: bridge
+    name: xpu_ray_sd_network
