@@ -10,7 +10,7 @@ services:
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:8000"
+      - "--entrypoints.web.address=:9000"
       - "--log.level=DEBUG"
       - "--accesslog=true"
 
@@ -19,11 +19,13 @@ services:
       context: ./auth
       dockerfile: Dockerfile
     network_mode: "host"
+    environment:
+      - VALID_TOKEN=${VALID_TOKEN}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.auth.entrypoints=web"
       - "traefik.http.routers.auth.rule=PathPrefix(`/auth`)"
-      - "traefik.http.services.auth.loadbalancer.server.port=8001"
+      - "traefik.http.services.auth.loadbalancer.server.port=9001"
 
   sd-service:
     build:
@@ -39,9 +41,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.sd.entrypoints=web"
       - "traefik.http.routers.sd.rule=PathPrefix(`/`)"
-      - "traefik.http.services.sd.loadbalancer.server.port=8000"
-
-networks:
-  sd_network:
-    driver: bridge
-    name: xpu_ray_sd_network
+      - "traefik.http.services.sd.loadbalancer.server.port=9002"
+      - "traefik.http.middlewares.auth-middleware.forwardauth.address=http://localhost:9001/auth/validate"
+      - "traefik.http.middlewares.auth-middleware.forwardauth.authResponseHeaders=X-Auth-User"
+      - "traefik.http.routers.sd.middlewares=auth-middleware@docker"

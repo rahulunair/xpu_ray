@@ -4,7 +4,7 @@ import os
 
 app = FastAPI()
 
-@app.get("/auth")
+@app.get("/auth/validate")
 async def authenticate(authorization: Optional[str] = Header(None)):
     valid_token = os.getenv("VALID_TOKEN")
     

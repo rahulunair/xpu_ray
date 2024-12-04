@@ -258,3 +258,15 @@ class ImageGenerationServer:
 
 # Deploy the application
 entrypoint = ImageGenerationServer.bind()
+
+def entrypoint(args):
+    ray.init(address="auto", namespace="serve")
+    serve.start(
+        http_options={
+            "host": "0.0.0.0",
+            "port": 9002,
+            "location": "EveryNode"
+        },
+        detached=True
+    )
+    serve.run(ImageGenerationServer.bind())
