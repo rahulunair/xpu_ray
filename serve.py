@@ -18,7 +18,6 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-# Define model configurations
 MODEL_CONFIGS = {
     "sd2": {
         "default_steps": 50,
@@ -177,8 +176,6 @@ class ImageGenerationServer:
                 raise HTTPException(
                     status_code=404, detail=f"Model {model_name} not found"
                 )
-
-            # Validate image size
             config = MODEL_CONFIGS[model_name]
             if img_size < config["min_img_size"] or img_size > config["max_img_size"]:
                 raise HTTPException(
@@ -198,7 +195,6 @@ class ImageGenerationServer:
             if not prompt:
                 raise HTTPException(status_code=400, detail="Prompt cannot be empty")
 
-            # Use model-specific defaults if parameters are not provided
             kwargs = {
                 "guidance_scale": (
                     guidance_scale
@@ -245,8 +241,6 @@ class ImageGenerationServer:
         loaded_models = [
             name for name, status in self.model_statuses.items() if status.is_loaded
         ]
-
-        # Consider service healthy if at least one model is loaded
         is_healthy = len(loaded_models) > 0
 
         return {
@@ -256,11 +250,18 @@ class ImageGenerationServer:
         }
 
 
-# Deploy the application
 entrypoint = ImageGenerationServer.bind()
 
 def entrypoint(args):
-    ray.init(address="auto", namespace="serve")
+    ray.init(
+        address="auto",
+        namespace="serve",
+        runtime_env={
+            "env_vars": {
+                "RAY_SERVE_ENABLE_EXPERIMENTAL_STREAMING": "1"
+            }
+        }
+    )
     serve.start(
         http_options={
             "host": "0.0.0.0",
@@ -269,4 +270,4 @@ def entrypoint(args):
         },
         detached=True
     )
-    serve.run(ImageGenerationServer.bind())
+    ImageGenerationServer.deploy()

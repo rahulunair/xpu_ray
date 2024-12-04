@@ -1,19 +1,13 @@
-import abc
 import logging
-from typing import Any, Dict, List, Optional
-
-import intel_extension_for_pytorch as ipex
+from typing import Any, Dict
 import torch
+import intel_extension_for_pytorch as ipex
 from diffusers import (
     EulerDiscreteScheduler,
     FluxPipeline,
     StableDiffusionPipeline,
     StableDiffusionXLPipeline,
-    StableDiffusionXLImg2ImgPipeline,
-    ControlNetModel,
-    StableDiffusionControlNetPipeline,
     DiffusionPipeline,
-    StableDiffusionLatentUpscalePipeline,
     UNet2DConditionModel,
 )
 from PIL import Image
@@ -21,17 +15,44 @@ from huggingface_hub import hf_hub_download
 from safetensors.torch import load_file
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.WARNING)
 
+def try_compile_unet(unet):
+    """Attempt to compile UNet with torch.compile"""
+    try:
+        import triton  # Check if triton is available
+        logger.info("Attempting to compile UNet with torch.compile")
+        return torch.compile(unet, options={"freezing": True})
+    except ImportError:
+        logger.warning("Triton not available, skipping torch.compile optimization")
+        return unet
+    except Exception as e:
+        logger.warning(f"torch.compile failed: {e}, continuing without compilation")
+        return unet
 
-class BaseModel(abc.ABC):
-    @abc.abstractmethod
+def perform_inference(pipe, prompt: str, height: int, width: int, **kwargs) -> Image.Image:
+    """Perform inference with optimized settings."""
+    try:
+        with torch.inference_mode(), torch.xpu.amp.autocast():
+            return pipe(
+                prompt,
+                height=height,
+                width=width,
+                **kwargs
+            ).images[0]
+    except Exception as e:
+        logger.error(f"Generation failed: {str(e)}")
+        raise
+    finally:
+        if hasattr(torch.xpu, 'empty_cache'):
+            torch.xpu.empty_cache()
+
+class BaseModel:
     def generate(self, prompt: str, height: int, width: int, **kwargs) -> Image.Image:
-        pass
+        raise NotImplementedError
 
-    @abc.abstractmethod
     def get_model_info(self) -> Dict[str, Any]:
-        pass
-
+        raise NotImplementedError
 
 class StableDiffusion2Model(BaseModel):
     def __init__(self, device: str = "xpu", dtype: torch.dtype = torch.bfloat16):
@@ -49,17 +70,19 @@ class StableDiffusion2Model(BaseModel):
         )
         self.pipe = self.pipe.to(self.device)
         self.pipe.unet = ipex.optimize(self.pipe.unet.eval(), dtype=self.dtype)
+        self.pipe.unet = try_compile_unet(self.pipe.unet)
         self.pipe.enable_attention_slicing()
+        logger.info(f"Initialized {self.model_id} with device={self.device}, dtype={self.dtype}")
 
     def generate(self, prompt: str, height: int, width: int, **kwargs) -> Image.Image:
-        with torch.autocast(self.device):
-            return self.pipe(
-                prompt,
-                height=height,
-                width=width,
-                num_inference_steps=kwargs.get("num_inference_steps", 30),
-                guidance_scale=kwargs.get("guidance_scale", 7.5),
-            ).images[0]
+        return perform_inference(
+            self.pipe, 
+            prompt, 
+            height, 
+            width, 
+            num_inference_steps=kwargs.get("num_inference_steps", 30),
+            guidance_scale=kwargs.get("guidance_scale", 7.5)
+        )
 
     def get_model_info(self) -> Dict[str, Any]:
         return {
@@ -68,7 +91,6 @@ class StableDiffusion2Model(BaseModel):
             "device": self.device,
             "dtype": str(self.dtype),
         }
-
 
 class StableDiffusionXLModel(BaseModel):
     def __init__(self, device: str = "xpu", dtype: torch.dtype = torch.bfloat16):
@@ -83,17 +105,19 @@ class StableDiffusionXLModel(BaseModel):
         )
         self.pipe = self.pipe.to(self.device)
         self.pipe.unet = ipex.optimize(self.pipe.unet.eval(), dtype=self.dtype)
+        self.pipe.unet = try_compile_unet(self.pipe.unet)
         self.pipe.enable_attention_slicing()
+        logger.info(f"Initialized {self.model_id} with device={self.device}, dtype={self.dtype}")
 
     def generate(self, prompt: str, height: int, width: int, **kwargs) -> Image.Image:
-        with torch.autocast(self.device):
-            return self.pipe(
-                prompt,
-                height=height,
-                width=width,
-                num_inference_steps=kwargs.get("num_inference_steps", 30),
-                guidance_scale=kwargs.get("guidance_scale", 7.5),
-            ).images[0]
+        return perform_inference(
+            self.pipe, 
+            prompt, 
+            height, 
+            width,
+            num_inference_steps=kwargs.get("num_inference_steps", 30),
+            guidance_scale=kwargs.get("guidance_scale", 7.5)
+        )
 
     def get_model_info(self) -> Dict[str, Any]:
         return {
@@ -102,7 +126,6 @@ class StableDiffusionXLModel(BaseModel):
             "device": self.device,
             "dtype": str(self.dtype),
         }
-
 
 class FluxModel(BaseModel):
     def __init__(self, device: str = "xpu", dtype: torch.dtype = torch.bfloat16):
@@ -114,16 +137,21 @@ class FluxModel(BaseModel):
     def _initialize_model(self):
         self.pipe = FluxPipeline.from_pretrained(self.model_id, torch_dtype=self.dtype)
         self.pipe = self.pipe.to(self.device)
-        self.pipe.enable_model_cpu_offload()
+        self.pipe.unet = ipex.optimize(self.pipe.unet.eval(), dtype=self.dtype)
+        self.pipe.unet = try_compile_unet(self.pipe.unet)
+        self.pipe.enable_attention_slicing()
+        logger.info(f"Initialized {self.model_id} with device={self.device}, dtype={self.dtype}")
 
     def generate(self, prompt: str, height: int, width: int, **kwargs) -> Image.Image:
-        return self.pipe(
+        return perform_inference(
+            self.pipe,
             prompt,
+            height,
+            width,
             guidance_scale=kwargs.get("guidance_scale", 0.0),
             num_inference_steps=kwargs.get("num_inference_steps", 4),
             max_sequence_length=kwargs.get("max_sequence_length", 256),
-            generator=torch.Generator("cpu").manual_seed(kwargs.get("seed", 0)),
-        ).images[0]
+        )
 
     def get_model_info(self) -> Dict[str, Any]:
         return {
@@ -147,17 +175,19 @@ class SDXLTurboModel(BaseModel):
         )
         self.pipe = self.pipe.to(self.device)
         self.pipe.unet = ipex.optimize(self.pipe.unet.eval(), dtype=self.dtype)
+        self.pipe.unet = try_compile_unet(self.pipe.unet)
         self.pipe.enable_attention_slicing()
+        logger.info(f"Initialized {self.model_id} with device={self.device}, dtype={self.dtype}")
 
     def generate(self, prompt: str, height: int, width: int, **kwargs) -> Image.Image:
-        with torch.autocast(self.device):
-            return self.pipe(
-                prompt,
-                height=height,
-                width=width,
-                num_inference_steps=kwargs.get("num_inference_steps", 1),
-                guidance_scale=kwargs.get("guidance_scale", 0.0),
-            ).images[0]
+        return perform_inference(
+            self.pipe,
+            prompt,
+            height,
+            width,
+            num_inference_steps=kwargs.get("num_inference_steps", 1),
+            guidance_scale=kwargs.get("guidance_scale", 0.0),
+        )
 
     def get_model_info(self) -> Dict[str, Any]:
         return {
@@ -177,46 +207,41 @@ class SDXLLightningModel(BaseModel):
         self._initialize_model()
 
     def _initialize_model(self):
-        # Load the base SDXL UNet configuration
         unet = UNet2DConditionModel.from_config(
             self.base_model_id, 
             subfolder="unet"
         ).to(self.device, self.dtype)
         
-        # Load the Lightning checkpoint
         unet.load_state_dict(
             load_file(
                 hf_hub_download(self.repo, self.ckpt),
                 device=self.device
             )
         )
-        
-        # Initialize the full pipeline with the custom UNet
         self.pipe = StableDiffusionXLPipeline.from_pretrained(
             self.base_model_id,
             unet=unet,
             torch_dtype=self.dtype
         ).to(self.device)
-        
-        # Use trailing timesteps as required by the model
+
         self.pipe.scheduler = EulerDiscreteScheduler.from_config(
             self.pipe.scheduler.config,
             timestep_spacing="trailing"
         )
-        
-        # Optimize for Intel XPU
         self.pipe.unet = ipex.optimize(self.pipe.unet.eval(), dtype=self.dtype)
+        self.pipe.unet = try_compile_unet(self.pipe.unet)
         self.pipe.enable_attention_slicing()
+        logger.info(f"Initialized {self.repo} with device={self.device}, dtype={self.dtype}")
 
     def generate(self, prompt: str, height: int, width: int, **kwargs) -> Image.Image:
-        with torch.autocast(self.device):
-            return self.pipe(
-                prompt,
-                height=height,
-                width=width,
-                num_inference_steps=kwargs.get("num_inference_steps", 4),
-                guidance_scale=kwargs.get("guidance_scale", 0.0),
-            ).images[0]
+        return perform_inference(
+            self.pipe,
+            prompt,
+            height,
+            width,
+            num_inference_steps=kwargs.get("num_inference_steps", 4),
+            guidance_scale=kwargs.get("guidance_scale", 0.0),
+        )
 
     def get_model_info(self) -> Dict[str, Any]:
         return {

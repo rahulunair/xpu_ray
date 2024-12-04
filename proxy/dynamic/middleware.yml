@@ -1,0 +1,15 @@
+http:
+  middlewares:
+    auth-error-handler:
+      errors:
+        status:
+          - "401-403"
+        service: auth
+        query: "/auth/error"
+    
+    ip-whitelist:
+      ipWhiteList:
+        sourceRange:
+          - "10.0.0.0/8"
+          - "172.16.0.0/12"
+          - "192.168.0.0/16" 

@@ -1,9 +1,17 @@
+networks:
+  sd_network:
+    driver: bridge
+
 services:
   traefik:
     build:
       context: ./proxy
       dockerfile: Dockerfile
-    network_mode: "host"
+    networks:
+      - sd_network
+    ports:
+      - "9000:9000"
+      - "8080:8080" 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     command:
@@ -13,12 +21,20 @@ services:
       - "--entrypoints.web.address=:9000"
       - "--log.level=DEBUG"
       - "--accesslog=true"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:8080/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
 
   auth:
     build:
       context: ./auth
       dockerfile: Dockerfile
-    network_mode: "host"
+    networks:
+      - sd_network
     environment:
       - VALID_TOKEN=${VALID_TOKEN}
     labels:
@@ -31,9 +47,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    network_mode: "host"
+    networks:
+      - sd_network
     devices:
       - /dev/dri:/dev/dri
+    environment:
+      - RAY_ADDRESS=0.0.0.0:9002
     volumes:
       - ${HOME}/.cache/huggingface:/root/.cache/huggingface
       - ${HOME}/stable-diffusion-models:/models
@@ -42,6 +61,6 @@ services:
       - "traefik.http.routers.sd.entrypoints=web"
       - "traefik.http.routers.sd.rule=PathPrefix(`/`)"
       - "traefik.http.services.sd.loadbalancer.server.port=9002"
-      - "traefik.http.middlewares.auth-middleware.forwardauth.address=http://localhost:9001/auth/validate"
+      - "traefik.http.middlewares.auth-middleware.forwardauth.address=http://auth:9001/auth/validate"
       - "traefik.http.middlewares.auth-middleware.forwardauth.authResponseHeaders=X-Auth-User"
       - "traefik.http.routers.sd.middlewares=auth-middleware@docker"

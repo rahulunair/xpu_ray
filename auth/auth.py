@@ -1,6 +1,11 @@
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI, HTTPException, Header, Response
 from typing import Optional
 import os
+import logging
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -8,16 +13,36 @@ app = FastAPI()
 async def authenticate(authorization: Optional[str] = Header(None)):
     valid_token = os.getenv("VALID_TOKEN")
     
+    if not valid_token:
+        logger.error("VALID_TOKEN environment variable not set")
+        raise HTTPException(status_code=500, detail="Authentication configuration error")
+    
     if not authorization:
+        logger.warning("No authorization token provided")
         raise HTTPException(status_code=401, detail="No authorization token provided")
     
     try:
         scheme, token = authorization.split()
         if scheme.lower() != 'bearer':
+            logger.warning(f"Invalid authentication scheme: {scheme}")
             raise HTTPException(status_code=401, detail="Invalid authentication scheme")
         if token != valid_token:
+            logger.warning("Invalid token attempt")
             raise HTTPException(status_code=401, detail="Invalid token")
+        response = Response(content='{"authenticated": true}')
+        response.headers["X-Auth-User"] = "authenticated"
+        return response
         
-        return {"authenticated": True}
     except ValueError:
+        logger.warning("Malformed authorization header")
         raise HTTPException(status_code=401, detail="Invalid authorization header format")
+
+@app.get("/auth/health")
+async def health_check():
+    """Health check endpoint for container orchestration"""
+    return {"status": "healthy"}
+
+@app.get("/auth/error")
+async def auth_error():
+    """Custom error page for authentication failures"""
+    return {"error": "Authentication failed", "message": "Please provide valid credentials"}
