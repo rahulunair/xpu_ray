@@ -39,9 +39,8 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.sd.rule=PathPrefix(`/`)"
       - "traefik.http.services.sd.loadbalancer.server.port=8000"
-      - "traefik.http.routers.sd.middlewares=sd-retry"
-      - "traefik.http.middlewares.sd-retry.retry.attempts=5"
-      - "traefik.http.middlewares.sd-retry.retry.initialInterval=10s"
+      - "traefik.http.routers.sd.service=sd"
+      - "traefik.docker.network=sd_network"
 
   traefik:
     build:
@@ -53,6 +52,11 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - sd_network
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=sd_network"
 
 networks:
   sd_network:

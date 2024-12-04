@@ -44,12 +44,6 @@ MODEL_CONFIGS = {
         "min_img_size": 512,
         "max_img_size": 1024,
     },
-    "pixart": {
-        "default_steps": 20,
-        "default_guidance": 4.5,
-        "min_img_size": 512,
-        "max_img_size": 1024,
-    },
     "sdxl-lightning": {
         "default_steps": 4,
         "default_guidance": 0.0,
