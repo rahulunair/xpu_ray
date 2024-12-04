@@ -7,7 +7,7 @@ entryPoints:
     address: ":9000"
     http:
       middlewares:
-        - chain-auth
+        - chain-auth@file
 
 providers:
   docker:

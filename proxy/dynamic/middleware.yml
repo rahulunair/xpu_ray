@@ -1,14 +1,23 @@
 http:
   middlewares:
-    rate-limit:
+    # Global Rate Limiting Middleware
+    global-limit:
       rateLimit:
         average: 100
         burst: 50
         period: 1m
+
+    # IP-Based Rate Limiting Middleware
+    ip-limit:
+      rateLimit:
+        average: 50
+        burst: 20
+        period: 1m
         sourceCriterion:
           ipStrategy:
             depth: 1
-    
+
+    # Security Headers Middleware
     security-headers:
       headers:
         frameDeny: true
@@ -18,10 +27,12 @@ http:
         stsIncludeSubdomains: true
         customResponseHeaders:
           X-Server: "XPU-Ray-Proxy"
-    
+
+    # Chain Middleware to Combine All
     chain-auth:
       chain:
         middlewares:
           - auth-middleware@docker
-          - rate-limit
-          - security-headers
+          - global-limit@file
+          - ip-limit@file
+          - security-headers@file
