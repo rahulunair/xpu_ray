@@ -26,7 +26,6 @@ COPY start_serving.sh /app/
 WORKDIR /app
 
 RUN chmod +x /app/start_serving.sh
-
 EXPOSE 6379 8265 9002
 
 ENTRYPOINT ["bash", "start_serving.sh"]

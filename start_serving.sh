@@ -8,4 +8,4 @@ export RAY_SERVE_PROXY_HOST="0.0.0.0"
 export RAY_ADDRESS="0.0.0.0:6379"
 
 ray start --head --disable-usage-stats
-python3 -m serve run serve:entrypoint
+serve run serve:entrypoint

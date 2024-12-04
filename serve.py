@@ -190,7 +190,6 @@ class ImageGenerationServer:
                         status_code=503,
                         detail=f"Model {model_name} is not available. Error: {status.error}",
                     )
-
             if not prompt:
                 raise HTTPException(status_code=400, detail="Prompt cannot be empty")
 
@@ -222,12 +221,9 @@ class ImageGenerationServer:
 
             file_stream = BytesIO()
             image.save(file_stream, "PNG")
-
             gc.collect()
             torch.xpu.empty_cache()
-
             return Response(content=file_stream.getvalue(), media_type="image/png")
-
         except HTTPException:
             raise
         except Exception as e:
@@ -250,23 +246,3 @@ class ImageGenerationServer:
 
 
 entrypoint = ImageGenerationServer.bind()
-
-def entrypoint(args):
-    ray.init(
-        address="auto",
-        namespace="serve",
-        runtime_env={
-            "env_vars": {
-                "RAY_SERVE_ENABLE_EXPERIMENTAL_STREAMING": "1"
-            }
-        }
-    )
-    serve.start(
-        http_options={
-            "host": "0.0.0.0",
-            "port": 9002,
-            "location": "EveryNode"
-        },
-        detached=True
-    )
-    ImageGenerationServer.deploy()
