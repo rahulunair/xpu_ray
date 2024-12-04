@@ -21,7 +21,7 @@ services:
       - sd_net
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.sd.rule=Path(`/imagine/{path:.*}`)"
+      - "traefik.http.routers.sd.rule=PathPrefix(`/imagine`)"
       - "traefik.http.routers.sd.middlewares=chain-auth@file"
       - "traefik.http.services.sd.loadbalancer.server.port=9002"
     restart: unless-stopped
