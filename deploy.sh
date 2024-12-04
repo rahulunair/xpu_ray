@@ -20,43 +20,51 @@ else
     echo "Generated new token: $VALID_TOKEN"
 fi
 
+echo "Stopping any services before starting again"
+docker compose down
 
-echo "Starting services..."
-docker compose up -d
-echo "Waiting for services to be ready..."
-max_attempts=30
-attempt=1
+echo "Rebuilding with cache"
+docker compose build # use --no-cache to rebuild clean
 
-while [ $attempt -le $max_attempts ]; do
-    if curl -s http://localhost:8000/health | grep -q '"status":"healthy"'; then
-        echo "Services are ready!"
-        break
-    fi
-    
-    echo "Attempt $attempt of $max_attempts: Services not ready yet... waiting"
-    sleep 10
-    ((attempt++))
-    
-    if [ $attempt -gt $max_attempts ]; then
-        echo "Services failed to start within the expected time"
-        exit 1
-    fi
-done
+echo "Starting services in order..."
+echo "1. Starting Traefik..."
+docker compose up -d traefik
+sleep 5
 
+echo "2. Starting Auth service..."
+docker compose up -d auth
+sleep 5
 
-echo -e "\n🎨 XPU Ray Stable Diffusion Service is ready!"
+echo "3. Starting SD service..."
+docker compose up -d sd-service
+echo "Waiting for services to be ready, SD service will take some time to load models..."
+
+echo -e "\n🎨 XPU Ray Stable Diffusion Service is starting!"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "🌐 API URL: http://localhost:8000"
+echo "🌐 API URL: http://localhost:9000"
 echo "🔑 Auth Token: $VALID_TOKEN"
 echo "🔐 Use with: Authorization: Bearer $VALID_TOKEN"
 echo "💡 To source token in new shell: source .auth_token.env"
+echo "📊 Traefik Dashboard: http://localhost:8080"
+echo "🔍 Monitor SD service: ./monitor_sd.sh"
+
+echo -e "\n⏳ Waiting for SD service to be ready..."
+echo "You can monitor the status with: ./monitor_sd.sh"
+
+# Wait for service to be ready
+until curl -s -H "Authorization: Bearer $VALID_TOKEN" http://localhost:9000/health > /dev/null; do
+    echo "Waiting for service to be ready..."
+    sleep 5
+done
 
 echo -e "\n📚 Available Models:"
-curl -s -H "Authorization: Bearer $VALID_TOKEN" http://localhost:8000/info | grep -o '"available_models":\[[^]]*\]'
-
+curl -s -H "Authorization: Bearer $VALID_TOKEN" http://localhost:9000/info | grep -o '"available_models":\[[^]]*\]'
 
 echo -e "\n🚀 Example Usage:"
-echo "curl -X POST \"http://localhost:8000/imagine/sdxl-turbo\" \\"
+echo "curl -X POST \"http://localhost:9000/imagine/sdxl-turbo\" \\"
 echo "     -H \"Authorization: Bearer $VALID_TOKEN\" \\"
 echo "     -H \"Content-Type: application/json\" \\"
 echo "     -d '{\"prompt\": \"a magical cosmic unicorn\"}'"
+
+echo -e "\n💡 For monitoring service status:"
+echo "./monitor_sd.sh"
