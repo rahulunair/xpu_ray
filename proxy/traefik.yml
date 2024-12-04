@@ -4,7 +4,7 @@ api:
 
 entryPoints:
   web:
-    address: ":8000"
+    address: ":9000"
     http:
       middlewares:
         - rate-limit@file
@@ -13,18 +13,9 @@ providers:
   docker:
     endpoint: "unix:///var/run/docker.sock"
     exposedByDefault: false
-    network: sd_network
   file:
     directory: "/etc/traefik/dynamic"
     watch: true
-
-http:
-  middlewares:
-    rate-limit:
-      rateLimit:
-        average: 100
-        burst: 50
-        period: 1m
 
 log:
   level: "DEBUG"

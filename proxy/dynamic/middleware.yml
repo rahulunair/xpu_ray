@@ -1,5 +1,11 @@
 http:
   middlewares:
+    rate-limit@file:
+      rateLimit:
+        average: 100
+        burst: 50
+        period: 1m
+    
     auth-error-handler:
       errors:
         status:
