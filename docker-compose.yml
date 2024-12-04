@@ -36,7 +36,7 @@ services:
     networks:
       - sd_network
     environment:
-      - VALID_TOKEN=${VALID_TOKEN}
+      - VALID_TOKEN=${VALID_TOKEN:-test-token}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.auth.entrypoints=web"
@@ -52,7 +52,9 @@ services:
     devices:
       - /dev/dri:/dev/dri
     environment:
-      - RAY_ADDRESS=0.0.0.0:9002
+      - RAY_ADDRESS=0.0.0.0:6379
+      - RAY_SERVE_HTTP_OPTIONS={"host":"0.0.0.0","port":9002}
+      - VALID_TOKEN=${VALID_TOKEN:-test-token}
     volumes:
       - ${HOME}/.cache/huggingface:/root/.cache/huggingface
       - ${HOME}/stable-diffusion-models:/models
@@ -64,3 +66,7 @@ services:
       - "traefik.http.middlewares.auth-middleware.forwardauth.address=http://auth:9001/auth/validate"
       - "traefik.http.middlewares.auth-middleware.forwardauth.authResponseHeaders=X-Auth-User"
       - "traefik.http.routers.sd.middlewares=auth-middleware@docker"
+    ports:
+      - "9002:9002"
+      - "8000:8000"
+      - "8265:8265"
