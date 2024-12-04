@@ -3,7 +3,9 @@ services:
     build:
       context: ./proxy
       dockerfile: Dockerfile
-    network_mode: "host"
+    ports:
+      - "9000:9000"
+      - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     command:
@@ -29,7 +31,8 @@ services:
     build:
       context: ./auth
       dockerfile: Dockerfile
-    network_mode: "host"
+    ports:
+      - "9001:9001"
     environment:
       - VALID_TOKEN=${VALID_TOKEN:-test-token}
     labels:
@@ -37,12 +40,20 @@ services:
       - "traefik.http.routers.auth.entrypoints=web"
       - "traefik.http.routers.auth.rule=PathPrefix(`/auth`)"
       - "traefik.http.services.auth.loadbalancer.server.port=9001"
+      - "traefik.http.services.auth.loadbalancer.server.scheme=http"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9001/auth/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
 
   sd-service:
     build:
       context: .
       dockerfile: Dockerfile
-    network_mode: "host"
+    ports:
+      - "9002:9002"
     devices:
       - /dev/dri:/dev/dri
     environment:
@@ -55,4 +66,6 @@ services:
       - "traefik.http.routers.sd.entrypoints=web"
       - "traefik.http.routers.sd.rule=PathPrefix(`/`)"
       - "traefik.http.services.sd.loadbalancer.server.port=9002"
+      - "traefik.http.services.sd.loadbalancer.server.scheme=http"
       - "traefik.http.routers.sd.middlewares=chain-auth@file"
+    restart: unless-stopped
