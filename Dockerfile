@@ -7,8 +7,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir \
-    "ray[serve]==2.9.0" \
-    "fastapi>=0.68.0,<0.69.0" \
+    "ray[serve]" \
+    "fastapi" \
     "diffusers" \
     "transformers" \
     "accelerate" \

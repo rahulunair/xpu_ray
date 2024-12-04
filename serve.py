@@ -8,7 +8,6 @@ import psutil
 import ray
 import torch
 from fastapi import FastAPI, HTTPException, Response
-from fastapi.responses import JSONResponse
 from ray import serve
 
 from sd import ModelFactory
@@ -66,8 +65,11 @@ class ModelStatus:
 @serve.deployment(
     ray_actor_options={"num_cpus": 20},
     num_replicas=1,
-    max_ongoing_requests=40,
-    max_queued_requests=10000,
+    max_concurrent_queries=40,
+    user_config={
+        "max_batch_size": 1,
+        "batch_wait_timeout_s": 0.1
+    }
 )
 @serve.ingress(app)
 class ImageGenerationServer:
