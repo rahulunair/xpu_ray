@@ -2,6 +2,15 @@
 
 A high-performance Stable Diffusion service powered by Intel XPU and Ray Serve, supporting multiple models with authentication and load balancing.
 
+<div align="center">
+  <p>
+    <img src="images/artist.png" width="250" alt="AI Artist" />
+    <img src="images/nature.png" width="250" alt="Nature Meets Technology" />
+    <img src="images/flow.png" width="250" alt="Data Flow" />
+  </p>
+  <p><i>Images generated using SDXL-Lightning model on Intel Max Series GPU VM 1100</i></p>
+</div>
+
 ## ✨ Features
 
 - **🖼️ Multiple Model Support**:
@@ -22,6 +31,10 @@ A high-performance Stable Diffusion service powered by Intel XPU and Ray Serve, 
   - 🤖 Automatic model management
   - 📊 Request queuing and rate limiting
 
+
+- **☁️ Cloud Deployment**:
+  - For cloud deployments, explore Intel Tiber AI Cloud at [https://cloud.intel.com](https://cloud.intel.com) to try it out.
+  
 ## 📋 Prerequisites
 
 - 🐳 Docker and Docker Compose
@@ -48,25 +61,56 @@ The script will:
 - ⏳ Wait for model to load
 - 📝 Display the API endpoint and token
 
-## 🔌 API Endpoints
+## Authentication Setup
 
-### 🎨 Generate Image
-```bash
-curl -X POST "http://localhost:8000/generate" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "prompt": "a beautiful sunset over mountains",
-       "img_size": 1024,
-       "guidance_scale": 7.5,
-       "num_inference_steps": 20
-     }'
-```
-Returns: PNG image
+Before making API calls, you need to set up authentication:
 
-### 💓 Check Service Health
+1. **Source the Token File**:
+    ```bash
+    source .auth_token.env
+    ```
+
+2. **Verify Token is Set**:
+    ```bash
+    echo $VALID_TOKEN
+    ```
+
+If you don't see a token:
+- Run `./deploy.sh` to generate a new token
+- The token will be saved in `.auth_token.env`
+- Source the file again
+
+**Note**: You need to source `.auth_token.env` in each new terminal session where you plan to make API calls.
+
+## API Endpoints
+
+### Generate Image
 ```bash
-curl http://localhost:8000/health
+# Save to a file (e.g., output.png)
+curl -X POST "http://localhost:9000/imagine/generate?prompt=a%20beautiful%20sunset%20over%20mountains" \
+     -H "Authorization: Bearer $VALID_TOKEN" \
+     -o output.png
+
+# Advanced usage with all parameters
+curl -X POST "http://localhost:9000/imagine/generate?prompt=a%20beautiful%20sunset%20over%20mountains&img_size=1024&guidance_scale=7.5&num_inference_steps=20" \
+     -H "Authorization: Bearer $VALID_TOKEN" \
+     -o generated_image.png
 ```
+
+Parameters:
+- `prompt` (required): Text description of the image to generate
+- `img_size` (optional): Size of the output image (default varies by model)
+- `guidance_scale` (optional): How closely to follow the prompt
+- `num_inference_steps` (optional): Number of denoising steps
+
+Returns: PNG image saved to the specified file
+
+### Check Service Health
+```bash
+curl "http://localhost:9000/imagine/health" \
+     -H "Authorization: Bearer $VALID_TOKEN"
+```
+
 Returns:
 ```json
 {
@@ -74,10 +118,12 @@ Returns:
 }
 ```
 
-### ℹ️ Get Model Information
+### Get Model Information
 ```bash
-curl http://localhost:8000/info
+curl "http://localhost:9000/imagine/info" \
+     -H "Authorization: Bearer $VALID_TOKEN"
 ```
+
 Returns:
 ```json
 {
@@ -92,13 +138,19 @@ Returns:
         "default": "bool"
     },
     "system_info": {
-        "memory_used": "float",
-        "memory_total": "float",
-        "memory_percent": "float",
-        "cpu_percent": "float"
+        "cpu_usage": "float",
+        "memory_usage": "float",
+        "available_memory": "float",
+        "total_memory": "float"
     }
 }
 ```
+
+**Note**: 
+- All endpoints require authentication using the `Authorization` header with a valid token
+- The token is generated during deployment and can be found in `.auth_token.env`
+- Source the token file before making requests: `source .auth_token.env`
+
 
 ## ⚙️ Model Configurations
 
@@ -123,6 +175,29 @@ Returns:
                   │ SD Service  │
                   └─────────────┘
 ```
+## 🔒 Security Considerations
+
+This service includes several features:
+- Token-based authentication for all endpoints
+- Rate limiting (both global and per-IP)
+- Network isolation via Docker
+- Resource limits and container security options
+
+**Note on HTTPS**: 
+- The default setup uses HTTP for simplicity in development/example environments
+- For production deployments, it's strongly recommended to:
+  1. Use a domain name with valid SSL/TLS certificates
+  2. Configure Traefik with HTTPS
+  3. Deploy behind a secure reverse proxy
+  4. Implement additional security measures based on your requirements
+
+**Current Security Features**:
+- ✅ Authentication required for all endpoints
+- ✅ Rate limiting: 10 requests/second per IP
+- ✅ Global rate limiting: 10 requests/second
+- ✅ Security headers for basic protection
+- ✅ Container isolation and resource limits
+
 
 ## 🛠️ Management Commands
 
@@ -185,4 +260,5 @@ The service caches Hugging Face model weights in `${HOME}/.cache/huggingface` to
 - Intel Extension for PyTorch
 - Hugging Face Diffusers
 - Ray Project
+
 
