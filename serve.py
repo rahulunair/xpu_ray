@@ -5,12 +5,12 @@ from dataclasses import dataclass
 from io import BytesIO
 from typing import Any, Dict, Optional, Union
 
+import ray.serve as serve
 import torch
 from fastapi import FastAPI, HTTPException, Response
-import ray.serve as serve
 
-from sd import ModelFactory
 from config.model_configs import MODEL_CONFIGS
+from sd import ModelFactory
 from utils.system_monitor import SystemMonitor
 from utils.validators import GenerationValidator
 
@@ -19,15 +19,18 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
+
 @dataclass
 class ModelStatus:
     """Status and metadata for the loaded model."""
+
     is_loaded: bool = False
     error: Optional[str] = None
     model: Optional[Any] = None
 
     def __str__(self) -> str:
         return f"Loaded: {self.is_loaded}, Error: {self.error}"
+
 
 @serve.deployment(
     ray_actor_options={"num_cpus": 20},
@@ -38,14 +41,14 @@ class ModelStatus:
 @serve.ingress(app)
 class ImageGenerationServer:
     """Server for handling image generation requests."""
-    
+
     def __init__(self):
         """Initialize the image generation server with a single model."""
         logger.info("Initializing Image Generation Server")
-        
-        self.model_name = os.environ.get('DEFAULT_MODEL', 'sdxl-lightning')
+
+        self.model_name = os.environ.get("DEFAULT_MODEL", "sdxl-lightning")
         logger.info(f"Using model: {self.model_name}")
-        
+
         self.model_status = ModelStatus()
         self._load_model()
 
@@ -102,15 +105,12 @@ class ImageGenerationServer:
             if not self.model_status.is_loaded:
                 raise HTTPException(
                     status_code=503,
-                    detail=f"Model is not available. Error: {self.model_status.error}"
+                    detail=f"Model is not available. Error: {self.model_status.error}",
                 )
 
             try:
                 image = self.model_status.model.generate(
-                    prompt=prompt,
-                    height=img_size,
-                    width=img_size,
-                    **kwargs
+                    prompt=prompt, height=img_size, width=img_size, **kwargs
                 )
             except Exception as e:
                 logger.error(f"Error generating image: {e}")
@@ -119,8 +119,7 @@ class ImageGenerationServer:
                 gc.collect()
                 torch.xpu.empty_cache()
                 raise HTTPException(
-                    status_code=500,
-                    detail=f"Error generating image: {str(e)}"
+                    status_code=500, detail=f"Error generating image: {str(e)}"
                 )
 
             file_stream = BytesIO()
@@ -132,5 +131,6 @@ class ImageGenerationServer:
         except Exception as e:
             logger.error(f"Unexpected error in generate: {e}")
             raise HTTPException(status_code=500, detail=str(e))
+
 
 entrypoint = ImageGenerationServer.bind()
