@@ -21,7 +21,7 @@ show_help() {
     echo "Available Models:"
     python3 -c '
 import sys
-from utils.model_configs import MODEL_CONFIGS
+from config.model_configs import MODEL_CONFIGS
 for name, config in MODEL_CONFIGS.items():
     default = " (default)" if config.get("default", False) else ""
     steps = config["default_steps"]
