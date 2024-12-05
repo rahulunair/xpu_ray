@@ -1,5 +1,9 @@
+import warnings
+warnings.filterwarnings("ignore")  # supress ipex warnings
+
 import logging
 from typing import Any, Dict
+
 import torch
 import intel_extension_for_pytorch as ipex
 from diffusers import (
@@ -51,17 +55,15 @@ def optimize_model_recursive(model):
         if isinstance(model, torch.nn.Module):
             logger.info(f"Optimizing module: {type(model).__name__}")
             return ipex.optimize(model.eval(), dtype=model.dtype)
-        
-        # If it's a container-like object (has attributes)
         if hasattr(model, '__dict__'):
             for name, component in model.__dict__.items():
-                if isinstance(component, (torch.nn.Module, object)):  # Check both Module and objects that might contain Modules
+                if isinstance(component, (torch.nn.Module, object)): 
                     try:
                         optimized = optimize_model_recursive(component)
                         setattr(model, name, optimized)
                     except Exception as e:
                         logger.warning(f"Failed to optimize {name}: {e}")
-        
+
         return model
     except Exception as e:
         logger.warning(f"Optimization failed: {e}, continuing without optimization")
@@ -95,10 +97,10 @@ class StableDiffusion2Model(BaseModel):
 
     def generate(self, prompt: str, height: int, width: int, **kwargs) -> Image.Image:
         return perform_inference(
-            self.pipe, 
-            prompt, 
-            height, 
-            width, 
+            self.pipe,
+            prompt,
+            height,
+            width,
             num_inference_steps=kwargs.get("num_inference_steps", 30),
             guidance_scale=kwargs.get("guidance_scale", 7.5)
         )
@@ -129,9 +131,9 @@ class StableDiffusionXLModel(BaseModel):
 
     def generate(self, prompt: str, height: int, width: int, **kwargs) -> Image.Image:
         return perform_inference(
-            self.pipe, 
-            prompt, 
-            height, 
+            self.pipe,
+            prompt,
+            height,
             width,
             num_inference_steps=kwargs.get("num_inference_steps", 30),
             guidance_scale=kwargs.get("guidance_scale", 7.5)
@@ -224,10 +226,10 @@ class SDXLLightningModel(BaseModel):
 
     def _initialize_model(self):
         unet = UNet2DConditionModel.from_config(
-            self.base_model_id, 
+            self.base_model_id,
             subfolder="unet"
         ).to(self.device, self.dtype)
-        
+
         unet.load_state_dict(
             load_file(
                 hf_hub_download(self.repo, self.ckpt),

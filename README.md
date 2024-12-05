@@ -45,46 +45,70 @@ cd xpu_ray
 The script will:
 - 🔑 Generate an authentication token
 - 🚀 Start all services
-- ⏳ Wait for models to load
+- ⏳ Wait for model to load
 - 📝 Display the API endpoint and token
 
 ## 🔌 API Endpoints
 
 ### 🎨 Generate Image
 ```bash
-curl -X POST "http://localhost:8000/imagine/sdxl-turbo" \
-     -H "Authorization: Bearer $VALID_TOKEN" \
+curl -X POST "http://localhost:8000/generate" \
      -H "Content-Type: application/json" \
      -d '{
        "prompt": "a beautiful sunset over mountains",
-       "img_size": 1024
+       "img_size": 1024,
+       "guidance_scale": 7.5,
+       "num_inference_steps": 20
      }'
 ```
+Returns: PNG image
 
 ### 💓 Check Service Health
 ```bash
 curl http://localhost:8000/health
+```
+Returns:
+```json
+{
+    "status": "healthy"  // or "degraded"
+}
 ```
 
 ### ℹ️ Get Model Information
 ```bash
 curl http://localhost:8000/info
 ```
-
-### 🔄 Reload Specific Model
-```bash
-curl -X POST "http://localhost:8000/reload_model/sdxl-turbo" \
-     -H "Authorization: Bearer $VALID_TOKEN"
+Returns:
+```json
+{
+    "model": "string",
+    "is_loaded": true,
+    "error": null,
+    "config": {
+        "default_steps": "int",
+        "default_guidance": "float",
+        "min_img_size": "int",
+        "max_img_size": "int",
+        "default": "bool"
+    },
+    "system_info": {
+        "memory_used": "float",
+        "memory_total": "float",
+        "memory_percent": "float",
+        "cpu_percent": "float"
+    }
+}
 ```
 
 ## ⚙️ Model Configurations
 
-| Model | Steps | Guidance | Min Size | Max Size |
-|-------|--------|-----------|-----------|-----------|
-| SD2 | 50 | 7.5 | 512 | 768 |
-| SDXL | 50 | 7.5 | 512 | 1024 |
-| SDXL-Turbo | 1 | 0.0 | 512 | 1024 |
-| SDXL-Lightning | 4 | 0.0 | 512 | 1024 |
+| Model          | Steps | Guidance | Min Size | Max Size |
+|----------------|-------|----------|----------|----------|
+| SD2            | 50    | 7.5      | 512      | 768      |
+| SDXL           | 20    | 7.5      | 512      | 1024     |
+| Flux           | 4     | 0.0      | 256      | 1024     |
+| SDXL-Turbo     | 1     | 0.0      | 512      | 1024     |
+| SDXL-Lightning | 4     | 0.0      | 512      | 1024     |
 
 ## 🏗️ Architecture
 
@@ -128,6 +152,7 @@ docker compose logs -f
 - `VALID_TOKEN`: Authentication token
 - `DIFFUSERS_CACHE`: Cache directory for diffusers
 - `HF_HOME`: Hugging Face home directory
+- `DEFAULT_MODEL`: Model to load at startup (default: 'sdxl-lightning')
 
 ## 📈 Performance Considerations
 
@@ -144,9 +169,20 @@ docker compose logs -f
 4. Push to the branch
 5. Create a new Pull Request
 
+## 📦 Caching
+
+The service caches Hugging Face model weights in `${HOME}/.cache/huggingface` to:
+- Improve load times
+- Reduce bandwidth usage
+- Persist between restarts
+
+**Note**: To use custom models, please upload them to the Hugging Face Hub and update the model configuration accordingly.
+
+**License Disclaimer**: The models used in this service are provided by third parties and are subject to their respective licenses. Users are responsible for ensuring compliance with these licenses when using the models. Please refer to the model documentation on the Hugging Face Hub for specific licensing information.
+
 ## 🙏 Acknowledgments
 
 - Intel Extension for PyTorch
 - Hugging Face Diffusers
 - Ray Project
-- Stability AI
+

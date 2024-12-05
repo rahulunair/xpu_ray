@@ -14,9 +14,9 @@ services:
       - /dev/dri:/dev/dri
     environment:
       - VALID_TOKEN=${VALID_TOKEN:-test-token}
+      - DEFAULT_MODEL=${DEFAULT_MODEL:-sdxl-lightning}
     volumes:
       - ${HOME}/.cache/huggingface:/root/.cache/huggingface
-      - ${HOME}/stable-diffusion-models:/models
     networks:
       - sd_net
     labels:
