@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional, Union
 
 import ray.serve as serve
 import torch
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import FastAPI, HTTPException, Response, Body
 
 from config.model_configs import MODEL_CONFIGS
 from sd import ModelFactory
@@ -89,10 +89,10 @@ class ImageGenerationServer:
     @app.post("/generate")
     async def generate(
         self,
-        prompt: str,
-        img_size: Union[int, str] = 512,
-        guidance_scale: Optional[Union[float, int, str]] = None,
-        num_inference_steps: Optional[Union[int, str]] = None,
+        prompt: str = Body(..., description="The prompt for image generation"),
+        img_size: Union[int, str] = Body(512, description="Size of the image"),
+        guidance_scale: Optional[Union[float, int, str]] = Body(None, description="Guidance scale"),
+        num_inference_steps: Optional[Union[int, str]] = Body(None, description="Number of inference steps"),
     ) -> Response:
         """Generate an image using the loaded model."""
         try:
