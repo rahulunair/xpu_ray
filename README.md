@@ -1,4 +1,6 @@
-# 🎨 XPU Ray Stable Diffusion Service
+# ⚡ XPU Ray Stable Diffusion Service
+
+
 
 A high-performance Stable Diffusion service powered by Intel XPU and Ray Serve, supporting multiple models with authentication and load balancing.
 
@@ -13,36 +15,62 @@ A high-performance Stable Diffusion service powered by Intel XPU and Ray Serve, 
 
 ## ✨ Features
 
-- **🖼️ Multiple Model Support**:
+- Multiple Model Support:
   - Stable Diffusion 2.0 (SD2)
   - Stable Diffusion XL (SDXL)
   - SDXL-Turbo
   - SDXL-Lightning
 
-- **⚡ Intel XPU Optimization**:
+- Intel XPU Optimization:
   - Optimized for Intel GPUs using Intel Extension for PyTorch
   - Efficient memory management
   - Hardware-accelerated inference
 
-- **🚀 Production-Ready Features**:
-  - 🔐 Token-based authentication
-  - ⚖️ Load balancing with Traefik
-  - 🏥 Health checks and monitoring
-  - 🤖 Automatic model management
-  - 📊 Request queuing and rate limiting
+- Production-Ready Features:
+  - Token-based authentication
+  - Load balancing with Traefik
+  - Health checks and monitoring
+  - Automatic model management
+  - Request queuing and rate limiting
 
+- Cloud Deployment:
+  - For cloud deployments, explore Intel Tiber AI Cloud at [https://cloud.intel.com](https://cloud.intel.com)
 
-- **☁️ Cloud Deployment**:
-  - For cloud deployments, explore Intel Tiber AI Cloud at [https://cloud.intel.com](https://cloud.intel.com) to try it out.
-  
-## 📋 Prerequisites
+## Prerequisites
 
-- 🐳 Docker and Docker Compose
-- 🎮 Intel GPU with appropriate drivers
-- 💾 32GB+ RAM recommended
-- 🐧 Ubuntu 22.04 or later
+- Docker and Docker Compose
+- Intel GPU with appropriate drivers
+- 32GB+ RAM recommended
+- Ubuntu 22.04 or later
 
-## 🚀 Quick Start
+## Model Selection
+
+### Available Models
+- sdxl-turbo (fastest, 1 step)
+- sdxl-lightning (default, fast with better quality, 4 steps)
+- sdxl (highest quality, 25 steps)
+- sd2 (alternative style, 30 steps)
+- flux (fast artistic, 4 steps)
+
+### Choosing a Model
+```bash
+# Deploy with specific model
+./deploy.sh <model-name>
+
+# Examples:
+./deploy.sh sdxl-turbo    # For fastest generation (1 step)
+./deploy.sh sdxl-lightning # For fast generation with better quality (4 steps)
+./deploy.sh sdxl          # For highest quality (25 steps)
+./deploy.sh sd2           # For SD 2.1 base model (30 steps)
+```
+
+### Switching Models
+To switch models without restarting base services:
+```bash
+./deploy.sh <model-name> --skip-base
+```
+
+## Quick Start
 
 1. Clone the repository:
 ```bash
@@ -56,213 +84,70 @@ cd xpu_ray
 ```
 
 The script will:
-- 🔑 Generate an authentication token
-- 🚀 Start all services
-- ⏳ Wait for model to load
-- 📝 Display the API endpoint and token
+- Generate an authentication token
+- Start all services
+- Wait for model to load
+- Display the API endpoint and token
 
 ## Authentication Setup
 
-Before making API calls, you need to set up authentication:
-
-1. **Source the Token File**:
-    ```bash
-    source .auth_token.env
-    ```
-
-2. **Verify Token is Set**:
-    ```bash
-    echo $VALID_TOKEN
-    ```
-
-If you don't see a token:
-- Run `./deploy.sh` to generate a new token
-- The token will be saved in `.auth_token.env`
-- Source the file again
-
-**Note**: You need to source `.auth_token.env` in each new terminal session where you plan to make API calls.
-
-## API Endpoints
-
-### Generate Image
+1. Source the token file:
 ```bash
-# Basic usage
-curl -X POST "http://localhost:9000/imagine/generate" \
-     -H "Authorization: Bearer $VALID_TOKEN" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "prompt": "a beautiful sunset over mountains",
-       "img_size": 1024,
-       "guidance_scale": 0,
-       "num_inference_steps": 4
-     }' \
-     --output sunset.png
+source .auth_token.env
 ```
 
-Parameters:
-- `prompt` (required): Text description of the image to generate
-- `img_size` (optional): Size of the output image (default: model-specific)
-- `guidance_scale` (optional): How closely to follow the prompt (default: model-specific)
-- `num_inference_steps` (optional): Number of denoising steps (default: model-specific)
-
-Returns: PNG image
-
-### Check Service Health
+2. Verify token is set:
 ```bash
-curl "http://localhost:9000/imagine/health" \
-     -H "Authorization: Bearer $VALID_TOKEN"
+echo $VALID_TOKEN
 ```
 
-Returns:
-```json
-{
-    "status": "healthy"  // or "degraded"
-}
-```
+See `./examples.md` for detailed API usage examples.
 
-### Get Model Information
-```bash
-curl "http://localhost:9000/imagine/info" \
-     -H "Authorization: Bearer $VALID_TOKEN"
-```
+## API Overview
 
-Returns:
-```json
-{
-    "model": "sdxl-lightning",
-    "is_loaded": true,
-    "error": null,
-    "config": {
-        "default_steps": 4,
-        "default_guidance": 0,
-        "min_img_size": 512,
-        "max_img_size": 1024,
-        "default": true
-    },
-    "system_info": {
-        "cpu_usage": 1.6,
-        "available_memory": 95.87,
-        "total_memory": 101.17,
-        "total_vram": "48.00GB",
-        "available_vram": "48.00GB",
-        "vram_usage": "0.00GB"
-    }
-}
-```
+Main endpoints:
+- `/imagine/generate` - Generate images
+- `/imagine/health` - Check service health
+- `/imagine/info` - Get model information
 
-**Note**: 
-- All endpoints require authentication using the `Authorization` header with a valid token
-- The token is generated during deployment and can be found in `.auth_token.env`
-- Source the token file before making requests: `source .auth_token.env`
+See `./api.md` for complete API documentation.
 
-
-## ⚙️ Model Configurations
+## Model Configurations
 
 | Model          | Steps | Guidance | Min Size | Max Size |
 |----------------|-------|----------|----------|----------|
-| SD2            | 50    | 7.5      | 512      | 768      |
-| SDXL           | 20    | 7.5      | 512      | 1024     |
-| Flux           | 4     | 0.0      | 256      | 1024     |
 | SDXL-Turbo     | 1     | 0.0      | 512      | 1024     |
 | SDXL-Lightning | 4     | 0.0      | 512      | 1024     |
+| SDXL           | 25    | 7.5      | 512      | 1024     |
+| SD2            | 30    | 7.5      | 512      | 768      |
+| Flux           | 4     | 0.0      | 256      | 1024     |
 
-## 🏗️ Architecture
+## Management Commands
 
-```
-┌─────────────┐     ┌──────────┐     ┌─────────────┐
-│   Client    │────▶│ Traefik  │────▶│    Auth     │
-└─────────────┘     └──────────┘     └─────────────┘
-                         │
-                         ▼
-                  ┌─────────────┐
-                  │ Ray Serve   │
-                  │ SD Service  │
-                  └─────────────┘
-```
-## 🔒 Security Considerations
-
-This service includes several features:
-- Token-based authentication for all endpoints
-- Rate limiting (both global and per-IP)
-- Network isolation via Docker
-- Resource limits and container security options
-
-**Note on HTTPS**: 
-- The default setup uses HTTP for simplicity in development/example environments
-- For production deployments, it's strongly recommended to:
-  1. Use a domain name with valid SSL/TLS certificates
-  2. Configure Traefik with HTTPS
-  3. Deploy behind a secure reverse proxy
-  4. Implement additional security measures based on your requirements
-
-**Current Security Features**:
-- ✅ Authentication required for all endpoints
-- ✅ Rate limiting: 10 requests/second per IP
-- ✅ Global rate limiting: 10 requests/second
-- ✅ Security headers for basic protection
-- ✅ Container isolation and resource limits
-
-
-## 🛠️ Management Commands
-
-### 🚀 Start Services
 ```bash
+# Start services
 docker compose up -d
-```
 
-### 🛑 Stop Services
-```bash
+# Stop services
 docker compose down
-```
 
-### 🧹 Clean Up
-```bash
-docker compose down --remove-orphans
-docker rmi xpu_ray-sd-service xpu_ray-auth xpu_ray-traefik
-```
-
-### 📋 View Logs
-```bash
+# View logs
 docker compose logs -f
 ```
 
-## 🔧 Environment Variables
+## Security & Performance
 
-- `VALID_TOKEN`: Authentication token
-- `DIFFUSERS_CACHE`: Cache directory for diffusers
-- `HF_HOME`: Hugging Face home directory
-- `DEFAULT_MODEL`: Model to load at startup (default: 'sdxl-lightning')
+- Token-based authentication
+- Rate limiting and request queuing
+- Model caching
+- Optimized for Intel GPUs
 
-## 📈 Performance Considerations
+## Model Cache
 
-- 🔄 Models are loaded on demand
-- 🧹 Memory is cleared after each generation
-- 💓 Health checks monitor system resources
-- 📊 Request queuing prevents overload
+Models are cached in `${HOME}/.cache/huggingface` to improve load times and reduce bandwidth usage.
 
-## 🤝 Contributing
+## Acknowledgments
 
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
-
-## 📦 Caching
-
-The service caches Hugging Face model weights in `${HOME}/.cache/huggingface` to:
-- Improve load times
-- Reduce bandwidth usage
-- Persist between restarts
-
-**Note**: To use custom models, please upload them to the Hugging Face Hub and update the model configuration accordingly.
-
-**License Disclaimer**: The models used in this service are provided by third parties and are subject to their respective licenses. Users are responsible for ensuring compliance with these licenses when using the models. Please refer to the model documentation on the Hugging Face Hub for specific licensing information.
-
-## 🙏 Acknowledgments
-
-- Intel Extension for PyTorch
-- Hugging Face Diffusers
-- Ray Project
+Built with Intel Extension for PyTorch, Hugging Face Diffusers, and Ray Project
 
 

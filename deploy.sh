@@ -56,7 +56,7 @@ if [ -n "$1" ] && [ "$1" != "--skip-base" ]; then
 fi
 
 DEFAULT_MODEL=${1:-"sdxl-lightning"}
-echo "ℹ️  Model: $DEFAULT_MODEL will be loaded automatically"
+echo "ℹ️  Model: $DEFAULT_MODEL will be loaded"
 export DEFAULT_MODEL="$DEFAULT_MODEL"
 
 # ------------------------------------------------------------------------------
