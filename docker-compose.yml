@@ -5,6 +5,9 @@ networks:
 
 services:
   sd-service:
+    shm_size: '20g'
+    tmpfs:
+      - /dev/shm
     build:
       context: .
     container_name: sd_service
