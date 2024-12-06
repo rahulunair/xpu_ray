@@ -146,8 +146,22 @@ docker compose logs -f
 
 Models are cached in `${HOME}/.cache/huggingface` to improve load times and reduce bandwidth usage.
 
+## Benchmarking
+
+For load testing and performance benchmarking tools, see the `benchmarks` directory.
+
+The benchmarks include:
+- Stress testing
+- Concurrent request handling
+- Service health monitoring
+- Performance metrics collection
+
+See `benchmarks/README.md` for setup and usage instructions.
+
 ## Acknowledgments
 
 Built with Intel Extension for PyTorch, Hugging Face Diffusers, and Ray Project
+
+
 
 

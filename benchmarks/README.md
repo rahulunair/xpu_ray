@@ -1,7 +1,12 @@
 # Stable Diffusion Service Benchmarks
 
-Tools and scripts for load testing and benchmarking the Stable Diffusion service.
 
+### Running Benchmarks
+
+1. Install wrk:
+```bash
+sudo apt-get install wrk
+```
 ## Prerequisites
 
 1. Ensure the service is running:
