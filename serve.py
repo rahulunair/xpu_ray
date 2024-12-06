@@ -44,10 +44,10 @@ class ModelStatus:
 
 
 @serve.deployment(
-    ray_actor_options={"num_cpus": 20},
+    ray_actor_options={"num_cpus": 24},
     num_replicas=1,
-    max_ongoing_requests=10,
-    max_queued_requests=20,
+    max_ongoing_requests=50,
+    max_queued_requests=100,
 )
 @serve.ingress(app)
 class ImageGenerationServer:
