@@ -34,7 +34,6 @@ async def authenticate(authorization: Optional[str] = Header(None)):
     if not authorization:
         logger.warning("No authorization token provided")
         raise HTTPException(status_code=401, detail="No authorization token provided")
-
     try:
         scheme, token = authorization.split()
         if scheme.lower() != "bearer":
@@ -46,7 +45,6 @@ async def authenticate(authorization: Optional[str] = Header(None)):
         response = Response(content='{"authenticated": true}')
         response.headers["X-Auth-User"] = "authenticated"
         return response
-
     except ValueError:
         logger.warning("Malformed authorization header")
         raise HTTPException(

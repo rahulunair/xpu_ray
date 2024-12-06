@@ -57,10 +57,8 @@ class ImageGenerationServer:
     def __init__(self):
         """Initialize the image generation server with a single model."""
         logger.info("Initializing Image Generation Server")
-
         self.model_name = os.environ.get("DEFAULT_MODEL", "sdxl-lightning")
         logger.info(f"Using model: {self.model_name}")
-
         self.model_status = ModelStatus()
         self._load_model()
 
@@ -117,13 +115,11 @@ class ImageGenerationServer:
             kwargs = GenerationValidator.validate_generation_params(
                 self.model_name, guidance_scale, num_inference_steps
             )
-
             if not self.model_status.is_loaded:
                 raise HTTPException(
                     status_code=503,
                     detail=f"Model is not available. Error: {self.model_status.error}",
                 )
-
             try:
                 image = self.model_status.model.generate(
                     prompt=prompt, height=img_size, width=img_size, **kwargs
@@ -137,11 +133,9 @@ class ImageGenerationServer:
                 raise HTTPException(
                     status_code=500, detail=f"Error generating image: {str(e)}"
                 )
-
             file_stream = BytesIO()
             image.save(file_stream, "PNG")
             return Response(content=file_stream.getvalue(), media_type="image/png")
-
         except HTTPException:
             raise
         except Exception as e:

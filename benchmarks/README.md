@@ -23,25 +23,20 @@ sudo apt-get install wrk
 curl -H "Authorization: Bearer $VALID_TOKEN" http://localhost:9000/imagine/health
 ```
 
-## Sample Results
+## Running Tests
 
-Load testing results using SDXL-Lightning model (Bfloat16) on Intel Max GPU 1100 VM :
+1. Install wrk:
+```bash
+sudo apt-get install wrk
+```
 
-| Connections | Threads | Req/sec | Latency (avg) | Transfer/sec |
-|------------|---------|---------|---------------|--------------|
-| 4          | 1       | 1.20    | -             | 447.31 KB   |
-| 8          | 2       | 1.43    | 1.28s         | 538.21 KB   |
-| 16         | 4       | 1.50    | 1.28s         | 572.94 KB   |
-| 32         | 8       | 1.40    | 1.39s         | 540.70 KB   |
-| 64         | 16      | 1.46    | 1.46s         | 549.71 KB   |
+2. Run stress test:
+```bash
+cd benchmarks
+./scripts/stress_test.sh
+```
 
-###  Analysis
-
-These results show typical performance for Stable Diffusion models:
-- ~1-2 images per second with SDXL-Lightning (4 steps)
-- Zero failed requests across all loads
-- Optimal performance at 16 concurrent connections
-- Consistent throughput under increasing load
+3. Results will be saved in `results/` directory
 
 ## Available Tests
 
@@ -63,17 +58,23 @@ Edit `scripts/test.lua` to modify:
 - Guidance scale
 - Prompt
 
-## Running Tests
 
-1. Install wrk:
-```bash
-sudo apt-get install wrk
-```
+## Sample Results
 
-2. Run stress test:
-```bash
-cd benchmarks
-./scripts/stress_test.sh
-```
+Load testing results using SDXL-Lightning model (Bfloat16) on Intel Max GPU 1100 VM :
 
-3. Results will be saved in `results/` directory
+| Connections | Threads | Req/sec | Latency (avg) | Transfer/sec |
+|------------|---------|---------|---------------|--------------|
+| 4          | 1       | 1.20    | -             | 447.31 KB   |
+| 8          | 2       | 1.43    | 1.28s         | 538.21 KB   |
+| 16         | 4       | 1.50    | 1.28s         | 572.94 KB   |
+| 32         | 8       | 1.40    | 1.39s         | 540.70 KB   |
+| 64         | 16      | 1.46    | 1.46s         | 549.71 KB   |
+
+###  Analysis
+
+These results show typical performance for Stable Diffusion models:
+- ~1-2 images per second with SDXL-Lightning (4 steps)
+- Zero failed requests across all loads
+- Optimal performance at 16 concurrent connections
+- Consistent throughput under increasing load

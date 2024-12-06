@@ -15,8 +15,5 @@ docker volume prune -f
 
 echo "Pruning unused images..."
 docker image prune -f
-
-# Optional: Remove auth token
 rm -f .auth_token.env
-
 echo "Cleanup complete!"

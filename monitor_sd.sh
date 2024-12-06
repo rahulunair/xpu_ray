@@ -8,7 +8,6 @@ NC='\033[0m'
 echo -e "${YELLOW}Monitoring Service Status...${NC}"
 echo -e "${YELLOW}Press Ctrl+C to stop monitoring${NC}\n"
 
-# Function to check if xpu-smi is available
 check_xpu_smi() {
     command -v xpu-smi > /dev/null 2>&1
 }
@@ -41,7 +40,6 @@ while true; do
         docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}"
         if check_xpu_smi; then
             echo -e "\n${GREEN}=== XPU Status ===${NC}"
-            # Get GPU utilization, memory usage, temperature
             xpu-smi dump -m0,18,2 -n1 2> /dev/null || echo -e "${YELLOW}Unable to get XPU metrics${NC}"
         fi
         echo -e "\n${GREEN}=== Ray Status ===${NC}"

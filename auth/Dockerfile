@@ -14,17 +14,11 @@ RUN pip install --no-cache-dir \
 
 
 RUN useradd -m -u 1000 authuser
-
-
 COPY auth.py /app/auth.py
+
 WORKDIR /app
-
-
 RUN chown -R authuser:authuser /app
-
-
 USER authuser
-
 HEALTHCHECK --interval=30s --timeout=3s \
     CMD curl -f http://localhost:9001/auth/health || exit 1
 

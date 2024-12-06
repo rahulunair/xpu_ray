@@ -66,7 +66,6 @@ def optimize_model_recursive(model):
                         setattr(model, name, optimized)
                     except Exception as e:
                         logger.warning(f"Failed to optimize {name}: {e}")
-
         return model
     except Exception as e:
         logger.warning(f"Optimization failed: {e}, continuing without optimization")

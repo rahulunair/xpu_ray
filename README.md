@@ -15,10 +15,7 @@ Using the Python client:
 ```python
 from client import StableDiffusionClient
 
-# Initialize client
 client = StableDiffusionClient("http://your-server:9000/imagine")
-
-# Generate image
 image_path = client.generate_image(
     prompt="a magical cosmic unicorn",
     img_size=1024,
