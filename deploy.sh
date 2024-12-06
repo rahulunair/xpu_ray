@@ -57,6 +57,7 @@ fi
 
 DEFAULT_MODEL=${1:-"sdxl-lightning"}
 echo "ℹ️  Model: $DEFAULT_MODEL will be loaded automatically"
+export DEFAULT_MODEL="$DEFAULT_MODEL"
 
 # ------------------------------------------------------------------------------
 # Generates a token with both memorability and entropy
@@ -170,7 +171,14 @@ done
 # Display Available Models and Example Usage
 # ------------------------------------------------------------------------------
 echo -e "\n=== Model Info ==="
-curl -s -H "Authorization: Bearer $VALID_TOKEN" http://localhost:9000/imagine/info | python3 -m json.tool
+response=$(curl -s -H "Authorization: Bearer $VALID_TOKEN" http://localhost:9000/imagine/info)
+if echo "$response" | python3 -m json.tool > /dev/null 2>&1; then
+    echo "$response" | python3 -m json.tool
+else
+    echo "Error getting model info. Raw response:"
+    echo "$response"
+    echo -e "\nTry checking the logs with: docker compose logs"
+fi
 
 echo -e "\n=== Quick API Examples ==="
 echo "# Health Check"
