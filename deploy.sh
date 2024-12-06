@@ -48,7 +48,7 @@ fi
 
 # Validate model name against available configs
 if [ -n "$1" ] && [ "$1" != "--skip-base" ]; then
-    if ! python3 -c "from model_configs import MODEL_CONFIGS; exit(0 if '$1' in MODEL_CONFIGS else 1)"; then
+    if ! python3 -c "from config.model_configs import MODEL_CONFIGS; exit(0 if '$1' in MODEL_CONFIGS else 1)"; then
         echo "Error: Invalid model name '$1'"
         echo "Run './deploy.sh --help' to see available models"
         exit 1
