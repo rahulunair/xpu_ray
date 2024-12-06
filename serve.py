@@ -17,7 +17,18 @@ from utils.validators import GenerationValidator
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
+# allow cors
+#from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
+
+#app.add_middleware(
+#    CORSMiddleware,
+#    allow_origins=["*"],
+#    allow_credentials=False,
+#    allow_methods=["*"],
+#    allow_headers=["*"]
+#)
 
 
 @dataclass
