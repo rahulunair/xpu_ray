@@ -20,6 +20,7 @@ A high-performance Stable Diffusion service powered by Intel XPU and Ray Serve, 
   - Stable Diffusion XL (SDXL)
   - SDXL-Turbo
   - SDXL-Lightning
+  - Flux
 
 - Intel XPU Optimization:
   - Optimized for Intel GPUs using Intel Extension for PyTorch
