@@ -182,22 +182,13 @@ fi
 
 echo -e "\n=== Quick API Examples ==="
 echo "# Health Check"
-echo "curl http://localhost:9000/imagine/health \\"
-echo "     -H \"Authorization: Bearer \$VALID_TOKEN\""
+echo "curl http://localhost:9000/imagine/health -H \"Authorization: Bearer \$VALID_TOKEN\""
 echo
 echo "# Get Model Info"
-echo "curl http://localhost:9000/imagine/info \\"
-echo "     -H \"Authorization: Bearer \$VALID_TOKEN\""
+echo "curl http://localhost:9000/imagine/info -H \"Authorization: Bearer \$VALID_TOKEN\""
 echo
 echo "# Generate Image"
-echo "curl -X POST http://localhost:9000/imagine/generate \\"
-echo "     -H \"Authorization: Bearer \$VALID_TOKEN\" \\"
-echo "     -H \"Content-Type: application/json\" \\"
-echo "     -d '{\"prompt\": \"a magical cosmic unicorn\", \\"
-echo "          \"img_size\": 1024, \\"
-echo "          \"guidance_scale\": 0, \\"
-echo "          \"num_inference_steps\": 4}' \\"
-echo "     --output image.png"
+echo "curl -X POST http://localhost:9000/imagine/generate -H \"Authorization: Bearer \$VALID_TOKEN\" -H \"Content-Type: application/json\" -d '{\"prompt\":\"a magical cosmic unicorn\",\"img_size\":1024,\"guidance_scale\":0,\"num_inference_steps\":4}' --output image.png"
 
 echo -e "\n=== Monitor Service ==="
 echo "./monitor_sd.sh"

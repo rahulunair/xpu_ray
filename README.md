@@ -133,14 +133,47 @@ docker compose down
 
 # View logs
 docker compose logs -f
+
+# Monitor stable diffusion service
+./monitor_sd.sh
+
+# Clean up all running services
+./cleanup.sh
 ```
 
 ## Security & Performance
 
 - Token-based authentication
-- Rate limiting and request queuing
-- Model caching
+- Production-grade rate limiting:
+  - Global limit: 30 requests/sec, burst up to 60
+  - Per-IP limit: 15 requests/sec, burst up to 30
+- Model caching and efficient memory management
 - Optimized for Intel GPUs
+
+### Single GPU Performance Guidelines (Intel Max GPU)
+
+Note: These are conservative estimates from basic load testing, not maximum performance benchmarks.
+
+Testing with SDXL-Lightning on a single Intel Max GPU VM using the service:
+- ~ 1.5 images/sec
+- Can serve ~15-20 users/minute
+
+An 8-GPU system can typically support ~100-120 users/minute with SDXL-Lightning model and the service.
+
+### Performance Tuning
+
+The service includes benchmark tools to test and optimize for your specific hardware:
+```bash
+cd benchmarks
+./scripts/stress_test.sh
+```
+
+You can adjust:
+- Traefik rate limits in `config/traefik/dynamic.yml`
+- Ray Serve settings in `serve_config.yaml`
+- Model parameters in deployment scripts
+
+See `benchmarks/README.md` for detailed performance testing instructions.
 
 ## Model Cache
 
