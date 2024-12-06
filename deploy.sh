@@ -118,7 +118,7 @@ else
 fi
 
 echo "2. Starting SD service with model: $DEFAULT_MODEL..."
-docker compose up -d
+docker compose up -d --no-warn-orphans
 echo "Waiting for services to be ready, SD service will take some time to load models..."
 
 # ------------------------------------------------------------------------------

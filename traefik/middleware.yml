@@ -25,13 +25,12 @@ http:
         customResponseHeaders:
           X-Server: "SD-Proxy"
     
-    # Uncomment  to enable CORS
-    # cors-headers:
-    #   headers:
-    #     accessControlAllowOrigin: "*"
-    #     accessControlAllowMethods: "*"
-    #     accessControlAllowHeaders: "*"
-    #     accessControlMaxAge: 3600
+    cors-headers:
+       headers:
+         accessControlAllowOrigin: "*"
+         accessControlAllowMethods: "*"
+         accessControlAllowHeaders: "*"
+         accessControlMaxAge: 3600
     
     chain-auth:
       chain:
@@ -41,4 +40,4 @@ http:
           - global-limit
           - ip-limit
           - security-headers
-          # - cors-headers    # Uncomment this line when enabling CORS
+          - cors-headers 
