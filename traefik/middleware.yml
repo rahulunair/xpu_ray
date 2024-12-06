@@ -2,14 +2,14 @@ http:
   middlewares:
     global-limit:
       rateLimit:
-        average: 10
-        burst: 25
+        average: 100
+        burst: 200
         period: 1s
 
     ip-limit:
       rateLimit:
-        average: 10
-        burst: 25
+        average: 50
+        burst: 100
         period: 1s
         sourceCriterion:
           ipStrategy:
