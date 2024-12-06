@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 # allow cors
 from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI()
 
 app.add_middleware(
@@ -16,8 +17,9 @@ app.add_middleware(
     allow_origins=["*"],
     allow_credentials=False,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
+
 
 @app.get("/auth/validate")
 async def authenticate(authorization: Optional[str] = Header(None)):

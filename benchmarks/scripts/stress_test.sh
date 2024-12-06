@@ -7,10 +7,10 @@ check_health() {
 }
 
 for connections in 4 8 16 32 64; do
-    threads=$((connections/4))
+    threads=$((connections / 4))
     if [ $threads -lt 1 ]; then
         threads=1
-    fi 
+    fi
     echo "Testing with $connections connections and $threads threads..."
     echo "date"
     wrk -t$threads -c$connections -d30s -s $(dirname $0)/test.lua http://localhost:9000/imagine/generate
@@ -20,4 +20,4 @@ for connections in 4 8 16 32 64; do
     fi
     echo "Waiting 10s before next test..."
     sleep 10
-done 
+done

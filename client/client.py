@@ -11,6 +11,7 @@ from requests.exceptions import RequestException
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class StableDiffusionClient:
     def __init__(self, base_url: str = "http://localhost:9000/imagine"):
         self.base_url = base_url.rstrip("/")
@@ -30,7 +31,7 @@ class StableDiffusionClient:
         try:
             response = requests.get(
                 f"{self.base_url}/health",
-                headers={"Authorization": f"Bearer {os.getenv('VALID_TOKEN')}"}
+                headers={"Authorization": f"Bearer {os.getenv('VALID_TOKEN')}"},
             )
             response.raise_for_status()
             return response.json()
@@ -43,7 +44,7 @@ class StableDiffusionClient:
         try:
             response = requests.get(
                 f"{self.base_url}/info",
-                headers={"Authorization": f"Bearer {os.getenv('VALID_TOKEN')}"}
+                headers={"Authorization": f"Bearer {os.getenv('VALID_TOKEN')}"},
             )
             response.raise_for_status()
             return response.json()
@@ -69,8 +70,8 @@ class StableDiffusionClient:
                     "prompt": prompt,
                     "img_size": img_size,
                     "guidance_scale": guidance_scale,
-                    "num_inference_steps": num_inference_steps
-                }
+                    "num_inference_steps": num_inference_steps,
+                },
             )
             response.raise_for_status()
             filename = self._create_filename(prompt)
@@ -82,6 +83,7 @@ class StableDiffusionClient:
             logger.error(f"Failed to generate image: {e}")
             raise
 
+
 def main():
     client = StableDiffusionClient()
     try:
@@ -92,14 +94,12 @@ def main():
         prompt = "A serene mountain landscape with a crystal-clear lake at sunset"
         logger.info(f"Generating image for prompt: {prompt}")
         image_path = client.generate_image(
-            prompt=prompt,
-            img_size=512,
-            guidance_scale=0.0,
-            num_inference_steps=4
+            prompt=prompt, img_size=512, guidance_scale=0.0, num_inference_steps=4
         )
         logger.info(f"Image saved to: {image_path}")
     except Exception as e:
         logger.error(f"Error: {e}")
+
 
 if __name__ == "__main__":
     main()

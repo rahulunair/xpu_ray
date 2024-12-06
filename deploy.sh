@@ -66,19 +66,19 @@ export DEFAULT_MODEL="$DEFAULT_MODEL"
 # ------------------------------------------------------------------------------
 generate_secure_token() {
     local adjectives=(
-        "swift" "bright" "unique" "calm" "deep" "bold" 
+        "swift" "bright" "unique" "calm" "deep" "bold"
         "wise" "kind" "pure" "humble" "warm" "cool"
         "fresh" "clear" "radiant" "keen" "firm" "true"
     )
-    
+
     local nouns=(
         "wave" "star" "moon" "sun" "wind"
         "tree" "lake" "bird" "cloud" "rose" "light"
         "peak" "rain" "leaf" "seed" "song"
-    )    
-    local adj1_idx=$(( $(openssl rand -hex 1 | od -An -i) % ${#adjectives[@]} ))
-    local adj2_idx=$(( $(openssl rand -hex 1 | od -An -i) % ${#adjectives[@]} ))
-    local noun_idx=$(( $(openssl rand -hex 1 | od -An -i) % ${#nouns[@]} ))    
+    )
+    local adj1_idx=$(($(openssl rand -hex 1 | od -An -i) % ${#adjectives[@]}))
+    local adj2_idx=$(($(openssl rand -hex 1 | od -An -i) % ${#adjectives[@]}))
+    local noun_idx=$(($(openssl rand -hex 1 | od -An -i) % ${#nouns[@]}))
     local random_hex=$(openssl rand -hex 12)
     echo "${adjectives[$adj1_idx]}-${adjectives[$adj2_idx]}-${nouns[$noun_idx]}-${random_hex}"
 }
@@ -147,22 +147,22 @@ echo "🔍 Monitor SD service: ./monitor_sd.sh"
 echo -e "\n⏳ Waiting for SD service to be ready..."
 echo "You can monitor the status with: ./monitor_sd.sh"
 
-TIMEOUT=120 
+TIMEOUT=120
 START_TIME=$(date +%s)
 while true; do
     if curl -s -H "Authorization: Bearer $VALID_TOKEN" http://localhost:9000/imagine/health > /dev/null; then
         break
     fi
-    
+
     CURRENT_TIME=$(date +%s)
     ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
-    
+
     if [ $ELAPSED_TIME -gt $TIMEOUT ]; then
         echo "Timeout waiting for service to be ready"
         echo "Please check logs with: docker compose logs"
         exit 1
     fi
-    
+
     echo "Waiting for service to be ready... (${ELAPSED_TIME}s)"
     sleep 5
 done

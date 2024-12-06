@@ -7,9 +7,14 @@ from typing import Any, Dict
 
 import intel_extension_for_pytorch as ipex
 import torch
-from diffusers import (DiffusionPipeline, EulerDiscreteScheduler, FluxPipeline,
-                       StableDiffusionPipeline, StableDiffusionXLPipeline,
-                       UNet2DConditionModel)
+from diffusers import (
+    DiffusionPipeline,
+    EulerDiscreteScheduler,
+    FluxPipeline,
+    StableDiffusionPipeline,
+    StableDiffusionXLPipeline,
+    UNet2DConditionModel,
+)
 from huggingface_hub import hf_hub_download
 from PIL import Image
 from safetensors.torch import load_file

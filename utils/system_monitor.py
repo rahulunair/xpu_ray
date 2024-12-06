@@ -1,5 +1,6 @@
 import warnings
-warnings.filterwarnings("ignore") # ipex warning
+
+warnings.filterwarnings("ignore")  # ipex warning
 
 import logging
 from typing import Any, Dict
@@ -31,7 +32,7 @@ class SystemMonitor:
                 device_props = torch.xpu.get_device_properties(device)
                 total_vram = device_props.total_memory / cls.BYTES_PER_GB
                 memory_stats = torch.xpu.memory_stats(device)
-                used_vram = memory_stats.get('allocated_bytes', 0) / cls.BYTES_PER_GB
+                used_vram = memory_stats.get("allocated_bytes", 0) / cls.BYTES_PER_GB
                 free_vram = total_vram - used_vram
                 info.update(
                     {

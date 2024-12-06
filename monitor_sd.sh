@@ -10,14 +10,14 @@ echo -e "${YELLOW}Press Ctrl+C to stop monitoring${NC}\n"
 
 # Function to check if xpu-smi is available
 check_xpu_smi() {
-    command -v xpu-smi >/dev/null 2>&1
+    command -v xpu-smi > /dev/null 2>&1
 }
 
 counter=0
 while true; do
     #clear
     echo -e "${GREEN}\n=== Service Status $(date) ===${NC}\n"
-    
+
     echo -e "${GREEN}=== Services Health ===${NC}"
     for service in "sd_proxy:Traefik" "sd_auth:Auth" "sd_service:SD Service"; do
         name=${service#*:}
@@ -38,18 +38,18 @@ while true; do
 
     if [ $counter -eq 0 ]; then
         echo -e "\n${GREEN}=== Resource Usage ===${NC}"
-        docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}"        
+        docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}"
         if check_xpu_smi; then
             echo -e "\n${GREEN}=== XPU Status ===${NC}"
             # Get GPU utilization, memory usage, temperature
-            xpu-smi dump -m0,18,2 -n1 2>/dev/null || echo -e "${YELLOW}Unable to get XPU metrics${NC}"
+            xpu-smi dump -m0,18,2 -n1 2> /dev/null || echo -e "${YELLOW}Unable to get XPU metrics${NC}"
         fi
         echo -e "\n${GREEN}=== Ray Status ===${NC}"
-        docker exec sd_service ray status 2>/dev/null || echo -e "${RED}Ray status check failed${NC}"
-        
+        docker exec sd_service ray status 2> /dev/null || echo -e "${RED}Ray status check failed${NC}"
+
         echo -e "\n${GREEN}=== Serve Status ===${NC}"
-        docker exec sd_service serve status 2>/dev/null || echo -e "${RED}Serve status check failed${NC}"
+        docker exec sd_service serve status 2> /dev/null || echo -e "${RED}Serve status check failed${NC}"
     fi
     counter=$((($counter + 1) % 6))
     sleep 10
-done 
+done
