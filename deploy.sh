@@ -56,7 +56,7 @@ if [ -n "$1" ] && [ "$1" != "--skip-base" ]; then
 fi
 
 DEFAULT_MODEL=${1:-"sdxl-lightning"}
-echo "ℹ️  Default model: $DEFAULT_MODEL will be loaded automatically"
+echo "ℹ️  Model: $DEFAULT_MODEL will be loaded automatically"
 
 # ------------------------------------------------------------------------------
 # Generates a token with both memorability and entropy
@@ -128,7 +128,7 @@ else
 fi
 
 echo "2. Starting SD service with model: $DEFAULT_MODEL..."
-docker compose up -d --no-warn-orphans
+docker compose up -d
 echo "Waiting for services to be ready, SD service will take some time to load models..."
 
 # ------------------------------------------------------------------------------
