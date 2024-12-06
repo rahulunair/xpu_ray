@@ -59,17 +59,27 @@ DEFAULT_MODEL=${1:-"sdxl-lightning"}
 echo "ℹ️  Default model: $DEFAULT_MODEL will be loaded automatically"
 
 # ------------------------------------------------------------------------------
-# Function: generate_fun_token
+# Generates a token with both memorability and entropy
+# For production consider using tokens with higher entropy
+# Current entropy: ~ 96 bits
 # ------------------------------------------------------------------------------
-# Generates a fun authentication token.
-# ------------------------------------------------------------------------------
-generate_fun_token() {
-    local adjectives=("magical" "cosmic" "quantum" "stellar" "mystic" "cyber" "neural" "atomic")
-    local nouns=("unicorn" "phoenix" "dragon" "wizard" "ninja" "samurai" "warrior" "sage")
-    local adj=${adjectives[$RANDOM % ${#adjectives[@]}]}
-    local noun=${nouns[$RANDOM % ${#nouns[@]}]}
-    local random_hex=$(openssl rand -hex 8)
-    echo "${adj}-${noun}-${random_hex}"
+generate_secure_token() {
+    local adjectives=(
+        "swift" "bright" "unique" "calm" "deep" "bold" 
+        "wise" "kind" "pure" "humble" "warm" "cool"
+        "fresh" "clear" "radiant" "keen" "firm" "true"
+    )
+    
+    local nouns=(
+        "wave" "star" "moon" "sun" "wind"
+        "tree" "lake" "bird" "cloud" "rose" "light"
+        "peak" "rain" "leaf" "seed" "song"
+    )    
+    local adj1_idx=$(( $(openssl rand -hex 1 | od -An -i) % ${#adjectives[@]} ))
+    local adj2_idx=$(( $(openssl rand -hex 1 | od -An -i) % ${#adjectives[@]} ))
+    local noun_idx=$(( $(openssl rand -hex 1 | od -An -i) % ${#nouns[@]} ))    
+    local random_hex=$(openssl rand -hex 12)
+    echo "${adjectives[$adj1_idx]}-${adjectives[$adj2_idx]}-${nouns[$noun_idx]}-${random_hex}"
 }
 
 # ------------------------------------------------------------------------------
@@ -88,7 +98,7 @@ if [ -f "$TOKEN_FILE" ]; then
     source "$TOKEN_FILE"
     echo "Using existing token: $VALID_TOKEN"
 else
-    export VALID_TOKEN=$(generate_fun_token)
+    export VALID_TOKEN=$(generate_secure_token)
     echo "export VALID_TOKEN=$VALID_TOKEN" > "$TOKEN_FILE"
     chmod 600 "$TOKEN_FILE"
     echo "Generated new token: $VALID_TOKEN"
