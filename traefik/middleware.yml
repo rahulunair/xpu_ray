@@ -24,14 +24,16 @@ http:
         stsIncludeSubdomains: true
         customResponseHeaders:
           X-Server: "SD-Proxy"
-    
+
     cors-headers:
-       headers:
-         accessControlAllowOrigin: "*"
-         accessControlAllowMethods: "*"
-         accessControlAllowHeaders: "*"
-         accessControlMaxAge: 3600
-    
+      headers:
+        accessControlAllowMethods: "GET,POST,OPTIONS"
+        accessControlAllowHeaders: "*"
+        accessControlAllowOriginList:
+          - "*"
+        accessControlMaxAge: 3600
+        addVaryHeader: true
+
     chain-auth:
       chain:
         middlewares:
@@ -40,4 +42,4 @@ http:
           - global-limit
           - ip-limit
           - security-headers
-          - cors-headers 
+          - cors-headers

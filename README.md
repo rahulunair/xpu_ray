@@ -86,24 +86,26 @@ If you don't see a token:
 
 ### Generate Image
 ```bash
-# Save to a file (e.g., output.png)
-curl -X POST "http://localhost:9000/imagine/generate?prompt=a%20beautiful%20sunset%20over%20mountains" \
+# Basic usage
+curl -X POST "http://localhost:9000/imagine/generate" \
      -H "Authorization: Bearer $VALID_TOKEN" \
-     -o output.png
-
-# Advanced usage with all parameters
-curl -X POST "http://localhost:9000/imagine/generate?prompt=a%20beautiful%20sunset%20over%20mountains&img_size=1024&guidance_scale=7.5&num_inference_steps=20" \
-     -H "Authorization: Bearer $VALID_TOKEN" \
-     -o generated_image.png
+     -H "Content-Type: application/json" \
+     -d '{
+       "prompt": "a beautiful sunset over mountains",
+       "img_size": 1024,
+       "guidance_scale": 0,
+       "num_inference_steps": 4
+     }' \
+     --output sunset.png
 ```
 
 Parameters:
 - `prompt` (required): Text description of the image to generate
-- `img_size` (optional): Size of the output image (default varies by model)
-- `guidance_scale` (optional): How closely to follow the prompt
-- `num_inference_steps` (optional): Number of denoising steps
+- `img_size` (optional): Size of the output image (default: model-specific)
+- `guidance_scale` (optional): How closely to follow the prompt (default: model-specific)
+- `num_inference_steps` (optional): Number of denoising steps (default: model-specific)
 
-Returns: PNG image saved to the specified file
+Returns: PNG image
 
 ### Check Service Health
 ```bash
@@ -127,21 +129,23 @@ curl "http://localhost:9000/imagine/info" \
 Returns:
 ```json
 {
-    "model": "string",
+    "model": "sdxl-lightning",
     "is_loaded": true,
     "error": null,
     "config": {
-        "default_steps": "int",
-        "default_guidance": "float",
-        "min_img_size": "int",
-        "max_img_size": "int",
-        "default": "bool"
+        "default_steps": 4,
+        "default_guidance": 0,
+        "min_img_size": 512,
+        "max_img_size": 1024,
+        "default": true
     },
     "system_info": {
-        "cpu_usage": "float",
-        "memory_usage": "float",
-        "available_memory": "float",
-        "total_memory": "float"
+        "cpu_usage": 1.6,
+        "available_memory": 95.87,
+        "total_memory": 101.17,
+        "total_vram": "48.00GB",
+        "available_vram": "48.00GB",
+        "vram_usage": "0.00GB"
     }
 }
 ```

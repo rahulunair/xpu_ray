@@ -41,9 +41,15 @@ test_model() {
     
     local output_file="${model}_test.png"
     
-    curl -X POST "http://localhost:9000/imagine/$model?prompt=$(echo $prompt | jq -sRr @uri)&img_size=$size&num_inference_steps=$steps&guidance_scale=$guidance" \
+    curl -X POST "http://localhost:9000/imagine/generate" \
          -H "Authorization: Bearer $VALID_TOKEN" \
-         -H "Accept: image/png" \
+         -H "Content-Type: application/json" \
+         -d "{
+           \"prompt\": \"$prompt\",
+           \"img_size\": $size,
+           \"guidance_scale\": $guidance,
+           \"num_inference_steps\": $steps
+         }" \
          --output "$output_file" \
          --silent
     

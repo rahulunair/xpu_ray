@@ -159,12 +159,27 @@ done
 # ------------------------------------------------------------------------------
 # Display Available Models and Example Usage
 # ------------------------------------------------------------------------------
-echo -e "\n📚 Available Models:"
-curl -s -H "Authorization: Bearer $VALID_TOKEN" http://localhost:9000/imagine/info | grep -o '"available_models":\[[^]]*\]'
+echo -e "\n=== Model Info ==="
+curl -s -H "Authorization: Bearer $VALID_TOKEN" http://localhost:9000/imagine/info | python3 -m json.tool
 
-echo -e "\n🚀 Example Usage:"
-echo "curl -X POST \"http://localhost:9000/imagine/sdxl-turbo?prompt=a%20magical%20cosmic%20unicorn\" \\"
-echo "     -H \"Authorization: Bearer $VALID_TOKEN\""
+echo -e "\n=== Quick API Examples ==="
+echo "# Health Check"
+echo "curl http://localhost:9000/imagine/health \\"
+echo "     -H \"Authorization: Bearer \$VALID_TOKEN\""
+echo
+echo "# Get Model Info"
+echo "curl http://localhost:9000/imagine/info \\"
+echo "     -H \"Authorization: Bearer \$VALID_TOKEN\""
+echo
+echo "# Generate Image"
+echo "curl -X POST http://localhost:9000/imagine/generate \\"
+echo "     -H \"Authorization: Bearer \$VALID_TOKEN\" \\"
+echo "     -H \"Content-Type: application/json\" \\"
+echo "     -d '{\"prompt\": \"a magical cosmic unicorn\", \\"
+echo "          \"img_size\": 1024, \\"
+echo "          \"guidance_scale\": 0, \\"
+echo "          \"num_inference_steps\": 4}' \\"
+echo "     --output image.png"
 
-echo -e "\n💡 For monitoring service status:"
+echo -e "\n=== Monitor Service ==="
 echo "./monitor_sd.sh"
