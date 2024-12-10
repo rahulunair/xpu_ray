@@ -9,11 +9,11 @@ TUNNEL_URL=""
 show_help() {
     echo "Usage: $0 [OPTIONS]"
     echo
-    echo "Start a Cloudflare tunnel for TGI service"
+    echo "Start a Cloudflare tunnel for your local service"
     echo
     echo "Options:"
     echo "  -h, --help    Show this help message"
-    echo "  --port PORT   Local port to tunnel (default: 8000)"
+    echo "  --port PORT   Local port to tunnel (default: 9000)"
     echo
     echo "Note:"
     echo "  This is for EVALUATION PURPOSES ONLY"
@@ -30,7 +30,7 @@ setup_cloudflared() {
     read -r response
     if [[ ! "$response" =~ ^[Yy]$ ]]; then
         echo -e "\n\033[1;33m📌 Alternative: Use SSH tunnel for remote access:\033[0m"
-        echo "   ssh -L 8000:localhost:8000 user@server"
+        echo "   ssh -L 9000:localhost:9000 user@server"
         exit 1
     fi
 
@@ -53,7 +53,7 @@ cleanup() {
 trap cleanup SIGINT SIGTERM
 
 main() {
-    local port=8000
+    local port=9000
 
     while [[ $# -gt 0 ]]; do
         case $1 in
