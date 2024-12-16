@@ -149,16 +149,40 @@ def get_model_info() -> Optional[dict]:
 
 def get_default_params(model_info: dict) -> dict:
     """Get default parameters based on model type."""
-    model_type = model_info.get("model", "sdxl-lightning")  # Default to lightning
+    model_type = model_info.get("model", "sdxl-lightning")
     defaults = {
-        "sdxl-lightning": {"steps": 4, "guidance": 0.0},
-        "sdxl-turbo": {"steps": 1, "guidance": 0.0},
-        "sdxl": {"steps": 20, "guidance": 7.5},
-        "sd2": {"steps": 30, "guidance": 7.5},
-        "flux": {"steps": 4, "guidance": 0.0},
+        "sdxl-lightning": {
+            "steps": 4, 
+            "guidance": 0.0, 
+            "size": 1024,
+            "prompt": "A majestic glowing snow leopard in the Himalayas, anime style, crystal clear, detailed fur, morning light, 8k"
+        },
+        "sdxl-turbo": {
+            "steps": 1, 
+            "guidance": 0.0, 
+            "size": 1024,
+            "prompt": "A vibrant cyberpunk cityscape at night, neon lights, flying cars, ultra detailed"
+        },
+        "sdxl": {
+            "steps": 20, 
+            "guidance": 7.5, 
+            "size": 1024,
+            "prompt": "Portrait of a renaissance noble in ornate clothing, Rembrandt lighting, hyperrealistic, 8k"
+        },
+        "sd2": {
+            "steps": 30, 
+            "guidance": 7.5, 
+            "size": 768,
+            "prompt": "An enchanted forest with glowing mushrooms and fairy lights, magical atmosphere"
+        },
+        "flux": {
+            "steps": 4, 
+            "guidance": 0.0, 
+            "size": 1024,
+            "prompt": "A serene Japanese garden with cherry blossoms, peaceful atmosphere, studio lighting"
+        }
     }
-    model_defaults = defaults.get(model_type, defaults["sdxl-lightning"])
-    return model_defaults
+    return defaults.get(model_type, defaults["sdxl-lightning"])
 
 
 def load_api_docs() -> str:
@@ -364,8 +388,10 @@ def main():
         with st.form("generation_form"):
             prompt = st.text_area(
                 "✍️ Enter your prompt:",
+                value=defaults.get("prompt", ""),
                 height=100,
                 help="Describe the image you want to generate",
+                placeholder="Try: 'A majestic glowing snow leopard in the Himalayas, anime style, crystal clear, detailed fur, morning light, 8k'"
             )
             col1, col2 = st.columns(2)
             with col1:
