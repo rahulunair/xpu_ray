@@ -137,9 +137,13 @@ def get_model_info() -> Optional[dict]:
     """Fetch current model information from the API."""
     try:
         response = config.api_client.make_request("info")
-        return response.json()
+        info = response.json()
+        if not info.get("is_loaded", False):
+            st.error("⚠️ Model service is not fully loaded")
+            return None
+        return info
     except Exception as e:
-        st.error(f"Failed to fetch model info: {e}")
+        st.error("❌ Cannot connect to model service. Please ensure it's running.")
         return None
 
 

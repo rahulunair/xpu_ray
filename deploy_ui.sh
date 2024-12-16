@@ -25,23 +25,69 @@ fi
 
 mkdir -p generated_images
 source .auth_token.env
-echo "🔍 Checking service health..."
-health_response=$(curl -s -H "Authorization: Bearer $VALID_TOKEN" http://localhost:9000/imagine/health)
-if echo "$health_response" | grep -q "healthy"; then
-    echo "✅ Image service is running and healthy"
-else
-    echo "❌ Error: Image service is not running or not healthy"
-    echo "Response: $health_response"
-    echo "Please start it first with deploy.sh"
-    exit 1
-fi
+
+# ------------------------------------------------------------------------------
+# Loading Animation Function
+# ------------------------------------------------------------------------------
+function show_loading_cat() {
+    local frames=("🐱" "🐱 " "🐱  " "🐱   " "🐱    " "🐱     " "🐱      " "🐱       ")
+    local delay=0.1
+    local frame=0
+    tput sc
+    while true; do
+        tput rc
+        tput el
+        echo -ne "${frames[frame]} Waiting for model to load..."
+        frame=$(( (frame + 1) % ${#frames[@]} ))
+        sleep $delay
+    done
+}
+
+# ------------------------------------------------------------------------------
+# Wait for Model Service
+# ------------------------------------------------------------------------------
+echo "🔄 Starting model service initialization check..."
+
+max_attempts=30
+attempt=1
+
+# Start loading animation in background
+show_loading_cat &
+LOADING_PID=$!
+
+while [ $attempt -le $max_attempts ]; do
+    health_response=$(curl -s -H "Authorization: Bearer $VALID_TOKEN" http://localhost:9000/imagine/health)
+    info_response=$(curl -s -H "Authorization: Bearer $VALID_TOKEN" http://localhost:9000/imagine/info)
+    
+    if echo "$health_response" | grep -q "healthy" && \
+       echo "$info_response" | grep -q "is_loaded.*true"; then
+        # Kill loading animation
+        kill $LOADING_PID 2>/dev/null
+        wait $LOADING_PID 2>/dev/null
+        echo -e "\n✨ Model service is ready!"
+        break
+    else
+        if [ $attempt -eq $max_attempts ]; then
+            # Kill loading animation
+            kill $LOADING_PID 2>/dev/null
+            wait $LOADING_PID 2>/dev/null
+            echo -e "\n❌ Timeout waiting for model service to be ready"
+            echo "Please ensure the model service is properly started"
+            echo "Health Response: $health_response"
+            echo "Info Response: $info_response"
+            exit 1
+        fi
+        sleep 10
+        attempt=$((attempt + 1))
+    fi
+done
 
 # ------------------------------------------------------------------------------
 # Cleanup existing processes
 # ------------------------------------------------------------------------------
 echo "🧹 Cleaning up existing UI processes..."
 pkill -f "streamlit run" || true
-sleep 2
+sleep 2 
 
 # ------------------------------------------------------------------------------
 # Install Dependencies
@@ -53,10 +99,8 @@ pip install streamlit requests pillow >/dev/null 2>&1
 # Deploy UI
 # ------------------------------------------------------------------------------
 echo "🚀 Starting UI server..."
-nohup streamlit run simple_ui/app.py >/dev/null 2>&1 &  # Changed from video_app.py to app.py
+nohup streamlit run simple_ui/app.py >/dev/null 2>&1 &
 UI_PID=$!
-
-# Wait briefly for Streamlit to start
 sleep 3
 
 # ------------------------------------------------------------------------------
@@ -89,6 +133,7 @@ else
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo "🌐 Access the UI at: http://localhost:8501"
     echo "💡 Press Ctrl+C to stop the UI"
+    
     trap 'kill $UI_PID 2>/dev/null || true' EXIT INT TERM
     wait $UI_PID
 fi
