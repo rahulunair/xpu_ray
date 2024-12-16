@@ -72,6 +72,6 @@ test_model "sd2" 30 7.5 768
 
 echo -e "\n${YELLOW}Test Summary${NC}"
 echo "Generated files:"
-ls -lh *.png 2> /dev/null
+ls -lh *.png 2>/dev/null
 echo -e "\n${GREEN}Tests completed!${NC}"
 echo "Results saved in: $TEST_DIR"

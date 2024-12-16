@@ -56,9 +56,9 @@ trap 'kill $LOADING_PID 2>/dev/null; exit' INT TERM EXIT
 while [ $attempt -le $max_attempts ]; do
     health_response=$(curl -s -H "Authorization: Bearer $VALID_TOKEN" http://localhost:9000/imagine/health)
     info_response=$(curl -s -H "Authorization: Bearer $VALID_TOKEN" http://localhost:9000/imagine/info)
-    
-    if echo "$health_response" | grep -q "healthy" && \
-       echo "$info_response" | grep -q "is_loaded.*true"; then
+
+    if echo "$health_response" | grep -q "healthy" &&
+        echo "$info_response" | grep -q "is_loaded.*true"; then
         kill $LOADING_PID 2>/dev/null
         echo -e "\n✨ Model service is ready!"
         break
@@ -114,9 +114,9 @@ read -r create_tunnel
 if [[ $create_tunnel =~ ^[Yy]$ ]]; then
     echo -e "\n⚠️  NOTICE: For evaluation purposes only"
     echo "🔄 Starting Cloudflare tunnel..."
-    
+
     # Check if cloudflared is installed
-    if ! command -v cloudflared &> /dev/null; then
+    if ! command -v cloudflared &>/dev/null; then
         echo "📥 Installing cloudflared..."
         curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb >/dev/null 2>&1
         sudo dpkg -i cloudflared.deb >/dev/null 2>&1
@@ -133,7 +133,7 @@ else
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo "🌐 Access the UI at: http://localhost:8501"
     echo "💡 Press Ctrl+C to stop the UI"
-    
+
     trap 'kill $UI_PID 2>/dev/null || true' EXIT INT TERM
     wait $UI_PID
 fi

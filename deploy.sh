@@ -86,7 +86,7 @@ generate_secure_token() {
 # ------------------------------------------------------------------------------
 # Check Docker Status
 # ------------------------------------------------------------------------------
-if ! docker info > /dev/null 2>&1; then
+if ! docker info >/dev/null 2>&1; then
     echo "Error: Docker is not running"
     exit 1
 fi
@@ -100,7 +100,7 @@ if [ -f "$TOKEN_FILE" ]; then
     echo "Using existing token: $VALID_TOKEN"
 else
     export VALID_TOKEN=$(generate_secure_token)
-    echo "export VALID_TOKEN=$VALID_TOKEN" > "$TOKEN_FILE"
+    echo "export VALID_TOKEN=$VALID_TOKEN" >"$TOKEN_FILE"
     chmod 600 "$TOKEN_FILE"
     echo "Generated new token: $VALID_TOKEN"
 fi
@@ -150,7 +150,7 @@ echo "You can monitor the status with: ./monitor_sd.sh"
 TIMEOUT=120
 START_TIME=$(date +%s)
 while true; do
-    if curl -s -H "Authorization: Bearer $VALID_TOKEN" http://localhost:9000/imagine/health > /dev/null; then
+    if curl -s -H "Authorization: Bearer $VALID_TOKEN" http://localhost:9000/imagine/health >/dev/null; then
         break
     fi
 
@@ -172,7 +172,7 @@ done
 # ------------------------------------------------------------------------------
 echo -e "\n=== Model Info ==="
 response=$(curl -s -H "Authorization: Bearer $VALID_TOKEN" http://localhost:9000/imagine/info)
-if echo "$response" | python3 -m json.tool > /dev/null 2>&1; then
+if echo "$response" | python3 -m json.tool >/dev/null 2>&1; then
     echo "$response" | python3 -m json.tool
 else
     echo "Error getting model info. Raw response:"

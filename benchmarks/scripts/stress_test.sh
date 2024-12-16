@@ -2,7 +2,7 @@
 
 echo "Starting stress test..."
 check_health() {
-    curl -s -H "Authorization: Bearer $VALID_TOKEN" http://localhost:9000/imagine/health > /dev/null
+    curl -s -H "Authorization: Bearer $VALID_TOKEN" http://localhost:9000/imagine/health >/dev/null
     return $?
 }
 
