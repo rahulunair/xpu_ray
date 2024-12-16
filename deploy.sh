@@ -171,6 +171,7 @@ done
 # Display Available Models and Example Usage
 # ------------------------------------------------------------------------------
 echo -e "\n=== Model Info ==="
+sleep 5
 response=$(curl -s -H "Authorization: Bearer $VALID_TOKEN" http://localhost:9000/imagine/info)
 if echo "$response" | python3 -m json.tool >/dev/null 2>&1; then
     echo "$response" | python3 -m json.tool
