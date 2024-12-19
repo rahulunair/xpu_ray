@@ -1,7 +1,20 @@
 # API Documentation
 
 ## Base URL
-`http://localhost:9000/imagine`
+
+**Local Development (on the same host as the service is setup) :**
+```
+http://localhost:9000
+```
+
+**Cloudflare Tunnel (Evaluation Only):**
+After running `./tunnel.sh`, you'll get a Cloudflare URL like:
+```
+https://<random-string>.trycloudflare.com
+```
+
+> **Note:** Cloudflare tunnels are for evaluation purposes only. For production use, please use Cloudflare Zero Trust or appropriate security measures.
+
 
 ## Authentication
 All endpoints require the `Authorization` header:
